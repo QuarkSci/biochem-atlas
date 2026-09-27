@@ -2,7 +2,28 @@ import type { Module } from '@/data/types'
 
 // Faol markaz qoldiqlari — PDB fayl raqamlashi (UniProt'dan -1 siljigan,
 // CLAUDE.md 5-bo'lim). Chain A, 1I10 (LDHA/M-zanjir).
-const ACTIVE_SITE_RESI = [192, 105, 168, 247, 165]
+export const ACTIVE_SITE_RESI = [192, 105, 168, 247, 165]
+
+// Har bir faol markaz qoldig'i uchun: 3D'dagi rang bilan bir xil (stick
+// rangi), ketma-ketlik panelida ham shu rang bilan ajratiladi.
+export const ACTIVE_SITE_INFO: Record<number, { name: string; color: string }> = {
+  192: { name: 'His192', color: '#ffcc00' },
+  105: { name: 'Arg105', color: '#4fd1c5' },
+  168: { name: 'Arg168', color: '#4fd1c5' },
+  247: { name: 'Thr247', color: '#f97066' },
+  165: { name: 'Asp165', color: '#a78bfa' },
+}
+
+// UniProt P00338 (LDHA) to'liq ketma-ketligi, Met1 bilan. PDB fayl
+// raqamlashi UniProt'dan -1 siljigan (Met1 kesilgan): PDB qoldiq N —
+// shu satrning N-indeksidagi harf (0-based), ya'ni CHAIN_A_SEQUENCE[N].
+export const CHAIN_A_SEQUENCE =
+  'MATLKDQLIYNLLKEEQTPQNKITVVGVGAVGMACAISILMKDLADELALVDVIEDKLKG' +
+  'EMMDLQHGSLFLRTPKIVSGKDYNVTANSKLVIITAGARQQEGESRLNLVQRNVNIFKFI' +
+  'IPNVVKYSPNCKLLIVSNPVDILTYVAWKISGFPKNRVIGSGCNLDSARFRYLMGERLGV' +
+  'HPLSCHGWVLGEHGDSSVPVWSGMNVAGVSLKTLHPDLGTDKDKEQWKEVHKQVVESAYE' +
+  'VIKLKGYTSWAIGLSVADLAESIMKNLRRVHPVSTMIKGLYGIKDDVFLSVPCILGQNGI' +
+  'SDLVKVTLTSEEEARLKKSADTLWGIQKELQF'
 
 export const ldhModule: Module = {
   id: 'ldh',
@@ -55,6 +76,14 @@ export const ldhModule: Module = {
           { select: { chain: 'A', resi: 165 }, style: 'stick', color: '#a78bfa' },
           { select: { chain: 'A', resn: 'OXM', hetflag: true }, style: 'stick', color: '#ff2d78' },
         ],
+        labels: [
+          { select: { chain: 'A', resi: 192 }, text: 'His192', color: '#ffcc00' },
+          { select: { chain: 'A', resi: 105 }, text: 'Arg105', color: '#4fd1c5' },
+          { select: { chain: 'A', resi: 168 }, text: 'Arg168', color: '#4fd1c5' },
+          { select: { chain: 'A', resi: 247 }, text: 'Thr247', color: '#f97066' },
+          { select: { chain: 'A', resi: 165 }, text: 'Asp165', color: '#a78bfa' },
+          { select: { chain: 'A', resn: 'OXM', hetflag: true }, text: 'Oksamat (substrat)', color: '#ff2d78' },
+        ],
         zoomTo: { chain: 'A', resi: ACTIVE_SITE_RESI },
       },
       description: {
@@ -72,6 +101,7 @@ export const ldhModule: Module = {
           { select: { chain: 'A' }, style: 'cartoon', color: '#4fa385', opacity: 0.28 },
           { select: { chain: 'A', resn: 'NAI', hetflag: true }, style: 'stick' },
         ],
+        labels: [{ select: { chain: 'A', resn: 'NAI', hetflag: true }, text: 'NADH (kofaktor)' }],
         zoomTo: { chain: 'A', resn: 'NAI', hetflag: true },
       },
       description: {

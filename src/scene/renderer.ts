@@ -22,10 +22,19 @@ export interface StyleSpec {
   opacity?: number
 }
 
+export interface LabelSpec {
+  select: ResidueSelector
+  text: string
+  /** Rang (hex), sukut — style qatlamnikiga mos oq/och rang. */
+  color?: string
+}
+
 export interface SceneSpec {
   id: string
   /** Har biri alohida style qatlami — tartib muhim (keyingisi avvalgisi ustiga). */
   layers: StyleSpec[]
+  /** 3D fazoda qoldiq nomi bilan yopishtiriladigan yorliqlar (taqdimot uchun). */
+  labels?: LabelSpec[]
   /** Kamera shu tanlovga qarab kadrlanadi; bo'sh bo'lsa butun struktura. */
   zoomTo?: ResidueSelector
   /** Haqiqiy struktura emas — sxematik (5-sahna, geterotetramerlar). */

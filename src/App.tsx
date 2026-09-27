@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import { SceneView } from './scene/SceneView'
 import { ldhModule } from './data/modules/ldh'
+import { SequenceStrip } from './ui/SequenceStrip'
 
 type Lang = 'uz' | 'en'
 
 export default function App() {
   const [sceneIdx, setSceneIdx] = useState(0)
   const [lang, setLang] = useState<Lang>('uz')
+  const [showSeq, setShowSeq] = useState(false)
   const scene = ldhModule.scenes[sceneIdx]
+  const canShowSeq = scene.pdbId === '1I10'
 
   return (
     <div className="dark fixed inset-0 overflow-hidden bg-background text-foreground">
@@ -26,6 +29,21 @@ export default function App() {
       >
         {lang === 'uz' ? 'EN' : 'UZ'}
       </button>
+
+      {canShowSeq && (
+        <button
+          onClick={() => setShowSeq((v) => !v)}
+          className={`glass absolute top-4 left-4 rounded-full px-3 py-1.5 text-xs font-medium ${showSeq ? 'bg-primary text-primary-foreground' : ''}`}
+        >
+          {lang === 'uz' ? 'Ketma-ketlik' : 'Sequence'}
+        </button>
+      )}
+
+      {canShowSeq && showSeq && (
+        <div className="absolute top-16 left-4">
+          <SequenceStrip lang={lang} />
+        </div>
+      )}
 
       <div className="absolute inset-x-0 bottom-4 flex flex-col items-center gap-2 px-4">
         <div className="glass max-h-[26vh] w-[min(92vw,28rem)] overflow-y-auto rounded-2xl px-5 py-3 text-sm leading-relaxed">

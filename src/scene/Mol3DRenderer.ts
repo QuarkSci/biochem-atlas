@@ -1,6 +1,6 @@
 // 3Dmol.js adapteri. 3Dmol tiplari faqat shu faylda ko'rinadi — StructureRenderer
 // interfeysi orqasidan tashqariga chiqmaydi (renderer.ts).
-import type { ResidueSelector, SceneSpec, StructureRenderer, StyleSpec } from './renderer'
+import type { LabelSpec, ResidueSelector, SceneSpec, StructureRenderer, StyleSpec } from './renderer'
 
 // 3Dmol paketida rasmiy TS tiplari yo'q — dynamic import + any bilan izolyatsiya.
 type GLViewer = any
@@ -63,12 +63,29 @@ export class Mol3DRenderer implements StructureRenderer {
   applyScene(spec: SceneSpec): void {
     if (!this.viewer) return
     this.viewer.setStyle({}, {})
+    this.viewer.removeAllLabels()
     for (const layer of spec.layers) {
       this.viewer.setStyle(toSelector(layer.select), toStyle(layer))
     }
+    for (const label of spec.labels ?? []) this.addResidueLabel(label)
     if (spec.zoomTo) this.viewer.zoomTo(toSelector(spec.zoomTo))
     else this.viewer.zoomTo()
     this.viewer.render()
+  }
+
+  private addResidueLabel(label: LabelSpec): void {
+    if (!this.viewer) return
+    const atoms = this.viewer.getModel().selectedAtoms(toSelector(label.select))
+    if (atoms.length === 0) return
+    const anchor = atoms.find((a: any) => a.atom === 'CA') ?? atoms[0]
+    this.viewer.addLabel(label.text, {
+      position: { x: anchor.x, y: anchor.y, z: anchor.z },
+      backgroundColor: '#0c1015',
+      backgroundOpacity: 0.7,
+      fontColor: label.color ?? '#ffffff',
+      fontSize: 13,
+      borderThickness: 0,
+    })
   }
 
   spin(on: boolean): void {
