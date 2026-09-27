@@ -1,0 +1,38 @@
+import { Mol3DRenderer } from './Mol3DRenderer'
+import type { SceneSpec, StructureRenderer } from './renderer'
+
+/**
+ * Sahna boshqaruvi — neuro-atlas'dagi BrainScene'ga o'xshash rol, lekin
+ * bugungi renderer (3Dmol) o'z canvas'ini o'zi boshqaradi, shuning uchun
+ * bu klass yupqa: yuklash + StructureRenderer orqali sahna spetsifikatsiyasi.
+ */
+export class MoleculeScene {
+  private renderer: StructureRenderer | null = null
+
+  static async mount(el: HTMLElement): Promise<MoleculeScene> {
+    const scene = new MoleculeScene()
+    scene.renderer = await Mol3DRenderer.create(el)
+    return scene
+  }
+
+  async load(id: string, pdbText: string) {
+    await this.renderer?.load(id, pdbText)
+  }
+
+  applyScene(spec: SceneSpec) {
+    this.renderer?.applyScene(spec)
+  }
+
+  setSpin(on: boolean) {
+    this.renderer?.spin(on)
+  }
+
+  resize() {
+    this.renderer?.resize()
+  }
+
+  dispose() {
+    this.setSpin(false)
+    this.renderer?.dispose()
+  }
+}
