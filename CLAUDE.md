@@ -5,7 +5,9 @@
 > yozadi, javoblar o'zbek tilida. Kod izohlari ingliz tilida.
 >
 > Yaratilgan: 2026-09-27 (chat sessiyasida, kod yozilmasdan oldin).
-> Holat: **PDB ID'lar tasdiqlandi (2026-09-27), Faza 0 boshlandi.**
+> Holat: **Faza 0 tugadi (2026-09-27).** 1I10 3Dmol'da cartoon ko'rinishda
+> aylanib turibdi, `git init` qilindi, commit bor. Keyingi: Faza 1 (LDH
+> moduli — 6 sahna).
 
 ## 0. YANGI SESSIYADA BIRINCHI QADAMLAR (shu tartibda)
 
@@ -122,6 +124,35 @@ biochem-atlas/
 5. `Mol3DRenderer` + `MoleculeScene` + `SceneView` — bitta struktura ekranda
    aylanib turishi kifoya. Sahnalar hali yo'q.
 6. **Brauzerda screenshot bilan tasdiqlang** (11-bo'lim qoidasi).
+
+**BAJARILDI (2026-09-25→27 emas, 2026-09-27 bir sessiyada), lekin 1-bandda
+farq bor:** `src/ui`, `src/i18n`, `src/store` KO'CHIRILMADI — ular
+neuro-atlas'ning `@/data`, `@/scene/materials` fayllariga bog'liq va Faza
+0'da ishlatilmagani uchun tsc'ni buzardi. Faza 1'da LDH moduli yozilganda
+kerak bo'lganlari qaytadan ko'chirilib, domenga moslashtirilsin (bir
+martalik `cp -r` emas, ehtiyotkorlik bilan — store `AtlasState` LDH
+kontekstiga mos kelmaydi, qayta yozish kerak bo'ladi).
+
+**3Dmol.js bilan ishlashda topilgan tafsilotlar:**
+- `createViewer` `backgroundColor`'i 8-xonali hex (`#00000000`, alpha bilan)
+  qabul qilmaydi — "color not found" xatosi va bo'sh ekran. Fon rangini
+  loyihaning `--background` CSS o'zgaruvchisiga mos opaque hex bilan bering
+  (`#0c1015` — `oklch(0.17 0.012 255)` ning RGB ekvivalenti, canvas orqali
+  hisoblangan).
+- `addModelsAsFrames` MODEL/ENDMDL yozuvi yo'q oddiy PDB fayllar (masalan
+  1I10) bilan hech narsa chizmaydi — bo'sh ekran, xatosiz. Yagona model
+  uchun oddiy `addModel(text, 'pdb')` ishlating; `addModelsAsFrames` faqat
+  chindan ko'p-MODEL fayllar uchun (1I0Z_bio1.pdb kabi) kerak bo'ladi.
+- `setStyle` select ob'ektida `chain` massiv (`['A','B']`) yoki vergul bilan
+  ajratilgan satr (`'A,B'`) — ikkalasi ham sinovda kutilganidek ishlamadi
+  (setStyle chaqirilgach ekran bo'sh qoldi, xatosiz) — sabab aniqlanmadi,
+  vaqt tejash uchun tekshirilmay qoldirildi. Hozircha `load()` standart
+  bo'yicha butun faylni (`{}` selector) `cartoon`+`spectrum` bilan chizadi.
+  Faza 1'da sahna spetsifikatsiyalari (6 ta LDH sahnasi) yozilganda buni
+  albatta hal qilish kerak — aks holda faqat A-D zanjirini yoki faol
+  markazni ajratib ko'rsatib bo'lmaydi. Birinchi urinish: `chain` o'rniga
+  har bir zanjir uchun alohida `setStyle({chain:'A'}, ...)` chaqiruvi (4
+  marta), yoki 3Dmol versiyasini (`^2.5.5`) tekshirish.
 
 ## 4. Ikki qattiq cheklov (2026-09-27 da tekshirilgan)
 

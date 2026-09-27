@@ -10,7 +10,7 @@ o'qish (TMI taqdimotlariga QR bilan) va Text-to-Code prototipi.
 
 | Faza | Ish | Baho | Holat |
 |---|---|---|---|
-| 0 | Skelet neuro-atlas'dan, `StructureRenderer` interfeysi, `pipeline/fetch.sh`, bitta struktura ekranda | 40 daq | ⬜ |
+| 0 | Skelet neuro-atlas'dan, `StructureRenderer` interfeysi, `pipeline/fetch.sh`, bitta struktura ekranda | 40 daq | ✅ |
 | 1 | LDH moduli: 6 sahna + uz/en kontent + `sources` + Inspector | 1.5 soat | ⬜ |
 | 2 | CLAUDE.md yangilash, GitHub repo + Pages deploy, QR, offline zaxira video | 40 daq | ⬜ |
 | 3 | `ThreeRenderer` adapteri (pipeline → GLB ribbon) | ~1 kun | ⬜ |
