@@ -41,10 +41,18 @@ export interface SceneSpec {
   schematic?: boolean
 }
 
+export interface AtomClickInfo {
+  chain: string
+  resi: number
+  resn: string
+}
+
 export interface StructureRenderer {
   /** PDB matnini (yoki bir nechta faylni, model sifatida) yuklaydi. */
   load(id: string, pdbText: string): Promise<void>
   applyScene(spec: SceneSpec): void
+  /** Strukturaning istalgan atomiga bosilganda chaqiriladi (masalan, tetramerda bitta zanjirni tanlash). */
+  onAtomClick(cb: (info: AtomClickInfo) => void): void
   spin(on: boolean): void
   resize(): void
   dispose(): void

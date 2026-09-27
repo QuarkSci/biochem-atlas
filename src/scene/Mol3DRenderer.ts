@@ -1,6 +1,6 @@
 // 3Dmol.js adapteri. 3Dmol tiplari faqat shu faylda ko'rinadi — StructureRenderer
 // interfeysi orqasidan tashqariga chiqmaydi (renderer.ts).
-import type { LabelSpec, ResidueSelector, SceneSpec, StructureRenderer, StyleSpec } from './renderer'
+import type { AtomClickInfo, LabelSpec, ResidueSelector, SceneSpec, StructureRenderer, StyleSpec } from './renderer'
 
 // 3Dmol paketida rasmiy TS tiplari yo'q — dynamic import + any bilan izolyatsiya.
 type GLViewer = any
@@ -36,6 +36,7 @@ function toStyle(spec: StyleSpec): Record<string, unknown> {
 export class Mol3DRenderer implements StructureRenderer {
   private viewer: GLViewer | null = null
   private el: HTMLElement
+  private clickCb: ((info: AtomClickInfo) => void) | null = null
 
   private constructor(el: HTMLElement, viewer: GLViewer) {
     this.el = el
@@ -56,8 +57,15 @@ export class Mol3DRenderer implements StructureRenderer {
     this.viewer.clear()
     this.viewer.addModel(pdbText, 'pdb')
     this.viewer.setStyle({}, { cartoon: { color: 'spectrum' } })
+    this.viewer.setClickable({}, true, (atom: any) => {
+      this.clickCb?.({ chain: atom.chain, resi: atom.resi, resn: atom.resn })
+    })
     this.viewer.zoomTo()
     this.viewer.render()
+  }
+
+  onAtomClick(cb: (info: AtomClickInfo) => void): void {
+    this.clickCb = cb
   }
 
   applyScene(spec: SceneSpec): void {

@@ -1,18 +1,21 @@
 import { useEffect, useRef } from 'react'
 import { MoleculeScene } from './MoleculeScene'
-import type { SceneSpec } from './renderer'
+import type { AtomClickInfo, SceneSpec } from './renderer'
 
 interface SceneViewProps {
   /** public/structures/<pdbId>.pdb dan yuklanadi. */
   pdbId: string
   spec: SceneSpec
   spin?: boolean
+  onAtomClick?: (info: AtomClickInfo) => void
 }
 
-export function SceneView({ pdbId, spec, spin = true }: SceneViewProps) {
+export function SceneView({ pdbId, spec, spin = true, onAtomClick }: SceneViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<MoleculeScene | null>(null)
   const loadedPdbRef = useRef<string | null>(null)
+  const onAtomClickRef = useRef(onAtomClick)
+  onAtomClickRef.current = onAtomClick
 
   useEffect(() => {
     let cancelled = false
@@ -31,6 +34,7 @@ export function SceneView({ pdbId, spec, spin = true }: SceneViewProps) {
       if (cancelled) return
       await scene.load(pdbId, pdbText)
       loadedPdbRef.current = pdbId
+      scene.onAtomClick((info) => onAtomClickRef.current?.(info))
       scene.applyScene(spec)
       scene.setSpin(spin)
     }
@@ -42,8 +46,9 @@ export function SceneView({ pdbId, spec, spin = true }: SceneViewProps) {
       sceneRef.current = null
       loadedPdbRef.current = null
     }
-    // pdbId o'zgarganda struktura qayta yuklanadi; spec/spin o'zgarishi
-    // quyidagi alohida effektlarda, qayta yuklamasdan qo'llanadi.
+    // pdbId o'zgarganda struktura qayta yuklanadi; spec/spin/onAtomClick
+    // o'zgarishi quyidagi alohida effektlarda yoki ref orqali, qayta
+    // yuklamasdan qo'llanadi.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pdbId])
 

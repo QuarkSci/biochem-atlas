@@ -1,5 +1,5 @@
 import { Mol3DRenderer } from './Mol3DRenderer'
-import type { SceneSpec, StructureRenderer } from './renderer'
+import type { AtomClickInfo, SceneSpec, StructureRenderer } from './renderer'
 
 /**
  * Sahna boshqaruvi — neuro-atlas'dagi BrainScene'ga o'xshash rol, lekin
@@ -21,6 +21,10 @@ export class MoleculeScene {
 
   applyScene(spec: SceneSpec) {
     this.renderer?.applyScene(spec)
+  }
+
+  onAtomClick(cb: (info: AtomClickInfo) => void) {
+    this.renderer?.onAtomClick(cb)
   }
 
   setSpin(on: boolean) {
