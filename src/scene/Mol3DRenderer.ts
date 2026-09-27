@@ -35,15 +35,20 @@ function toStyle(spec: StyleSpec): Record<string, unknown> {
 
 export class Mol3DRenderer implements StructureRenderer {
   private viewer: GLViewer | null = null
+  private el: HTMLElement
 
-  private constructor(viewer: GLViewer) {
+  private constructor(el: HTMLElement, viewer: GLViewer) {
+    this.el = el
     this.viewer = viewer
   }
 
   static async create(el: HTMLElement): Promise<Mol3DRenderer> {
+    // React StrictMode dev rejimida effect ikki marta ishga tushadi — eski
+    // canvas konteynerda qolib ketmasligi uchun tozalab boshlaymiz.
+    el.innerHTML = ''
     const $3Dmol = await import('3dmol')
     const viewer = $3Dmol.createViewer(el, { backgroundColor: '#0c1015' })
-    return new Mol3DRenderer(viewer)
+    return new Mol3DRenderer(el, viewer)
   }
 
   async load(_id: string, pdbText: string): Promise<void> {
@@ -77,5 +82,6 @@ export class Mol3DRenderer implements StructureRenderer {
   dispose(): void {
     this.viewer?.clear()
     this.viewer = null
+    this.el.innerHTML = ''
   }
 }

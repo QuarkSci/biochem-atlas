@@ -11,6 +11,14 @@ bash pipeline/fetch.sh
 
 → `data/raw/*.pdb`
 
+```bash
+python3 pipeline/prepare.py
+```
+
+→ `public/structures/*.pdb` (1I0Z uchun 2-MODEL biologik assambleyani
+C,D zanjir sifatida birlashtiradi — 3Dmol ko'p-MODEL faylning faqat
+birinchi freymini ko'rsatadi, shuning uchun oldindan birlashtirish kerak).
+
 **Nega qo'lda?** `files.rcsb.org` sandbox muhitlardan bloklangan
 (Cowork VM va cloud konteynerdan HTTP 403 proxy — 2026-09-27 da
 tekshirilgan). Foydalanuvchining o'z mac terminalida muammosiz ishlaydi.

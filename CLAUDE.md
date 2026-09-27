@@ -5,9 +5,9 @@
 > yozadi, javoblar o'zbek tilida. Kod izohlari ingliz tilida.
 >
 > Yaratilgan: 2026-09-27 (chat sessiyasida, kod yozilmasdan oldin).
-> Holat: **Faza 0 tugadi (2026-09-27).** 1I10 3Dmol'da cartoon ko'rinishda
-> aylanib turibdi, `git init` qilindi, commit bor. Keyingi: Faza 1 (LDH
-> moduli — 6 sahna).
+> Holat: **Faza 0 va Faza 1 tugadi (2026-09-27).** LDH moduli — 6 sahna,
+> uz/en kontent, brauzerda tasdiqlangan. Keyingi: Faza 2 (GitHub repo,
+> Pages deploy, QR).
 
 ## 0. YANGI SESSIYADA BIRINCHI QADAMLAR (shu tartibda)
 
@@ -143,16 +143,17 @@ kontekstiga mos kelmaydi, qayta yozish kerak bo'ladi).
   1I10) bilan hech narsa chizmaydi — bo'sh ekran, xatosiz. Yagona model
   uchun oddiy `addModel(text, 'pdb')` ishlating; `addModelsAsFrames` faqat
   chindan ko'p-MODEL fayllar uchun (1I0Z_bio1.pdb kabi) kerak bo'ladi.
-- `setStyle` select ob'ektida `chain` massiv (`['A','B']`) yoki vergul bilan
-  ajratilgan satr (`'A,B'`) — ikkalasi ham sinovda kutilganidek ishlamadi
-  (setStyle chaqirilgach ekran bo'sh qoldi, xatosiz) — sabab aniqlanmadi,
-  vaqt tejash uchun tekshirilmay qoldirildi. Hozircha `load()` standart
-  bo'yicha butun faylni (`{}` selector) `cartoon`+`spectrum` bilan chizadi.
-  Faza 1'da sahna spetsifikatsiyalari (6 ta LDH sahnasi) yozilganda buni
-  albatta hal qilish kerak — aks holda faqat A-D zanjirini yoki faol
-  markazni ajratib ko'rsatib bo'lmaydi. Birinchi urinish: `chain` o'rniga
-  har bir zanjir uchun alohida `setStyle({chain:'A'}, ...)` chaqiruvi (4
-  marta), yoki 3Dmol versiyasini (`^2.5.5`) tekshirish.
+- `chain` selektor massiv shaklida (`['A','B','C','D']`) TO'G'RI ishlaydi —
+  vergul bilan ajratilgan satr (`'A,B,C,D'`) ISHLAMAYDI (0 atom tanlanadi).
+  Haqiqiy sabab boshqa yerda edi: React StrictMode dev rejimida effect 2
+  marta ishga tushadi, ikkinchi 3Dmol canvas birinchisining USTIGA
+  qo'shiladi (`createViewer` konteynerni tozalamaydi) — natijada eski
+  canvas ustida turib qoladi. Tuzatish: `Mol3DRenderer.create()`da
+  `el.innerHTML = ''`, `dispose()`da ham xuddi shunday.
+- `colorscheme` ikkilamchi struktura uchun `'ssPyMOL'` EMAS — 3Dmol'ning
+  o'z konstantasi `$3Dmol.ssColors.pyMol` (kichik harf `l`), to'g'ri
+  qiymat: `colorscheme: 'ssPyMol'`. Xato yozilsa xatosiz, faqat kulrang
+  render qiladi.
 
 ## 4. Ikki qattiq cheklov (2026-09-27 da tekshirilgan)
 
