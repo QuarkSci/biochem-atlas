@@ -36,9 +36,13 @@ boshlash — ikkisi yarim qoladi va IELTS'dan ham vaqt yeydi.
 
 ## 4. Tugallanganlik mezoni (Faza 2 oxirida)
 
-- [ ] 6 sahna ishlaydi, o'tish silliq
-- [ ] uz/en ikkalasi to'liq, har yozuvda `sources`
-- [ ] `npx tsc --noEmit` va `npm run build` toza
-- [ ] Brauzerda screenshot bilan tasdiqlangan (375×812 va 1440×900)
+- [x] 6 sahna ishlaydi, o'tish silliq
+- [x] uz/en ikkalasi to'liq, har yozuvda `sources`
+- [x] `npx tsc --noEmit` va `npm run build` toza
+- [x] Brauzerda screenshot bilan tasdiqlangan (375×812 va 1440×900)
 - [ ] GitHub Pages'da jonli, QR ishlaydi
 - [ ] Internet yo'q holat uchun zaxira video tayyor
+
+Bonus (rejada yo'q edi, foydalanuvchi so'ragan): 3D suzuvchi yorliqlar,
+aminokislotalar ketma-ketligi paneli, tetramerda zanjirga bosib
+yaqinlashish — batafsil `CLAUDE.md` 5-bo'lim.
