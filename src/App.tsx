@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { SceneView } from './scene/SceneView'
 import { ldhModule } from './data/modules/ldh'
 import { SequenceStrip } from './ui/SequenceStrip'
+import { Inspector } from './ui/Inspector'
 import type { AtomClickInfo, SceneSpec } from './scene/renderer'
+import type { L10nText } from './data/types'
 
 type Lang = 'uz' | 'en'
 
@@ -13,133 +15,176 @@ const FOCUS_TEXT = {
     `Chain ${chain} zoomed in — all 4 subunits of the tetramer are identical (homotetramer), so this is what any chain looks like. See the "Single subunit" scene for full domain detail.`,
 }
 
+const UI = {
+  hint: { uz: 'Zanjirga bosing', en: 'Tap a chain' },
+  allChains: { uz: '← Barcha zanjirlar', en: '← All chains' },
+  parts: { uz: 'Muhim qismlar', en: 'Key regions' },
+  busy: { uz: 'Yuza hisoblanmoqda…', en: 'Computing surface…' },
+  seq: { uz: 'Ketma-ketlik', en: 'Sequence' },
+  spin: { uz: 'Aylanish', en: 'Spin' },
+  info: { uz: "Ma'lumot", en: 'Details' },
+}
+
 export default function App() {
   const [sceneIdx, setSceneIdx] = useState(0)
   const [lang, setLang] = useState<Lang>('uz')
   const [showSeq, setShowSeq] = useState(false)
-  const [descOpen, setDescOpen] = useState(true)
+  const [spin, setSpin] = useState(true)
+  const [busy, setBusy] = useState(true)
+  const [hotspotId, setHotspotId] = useState<string | null>(null)
   const [focusChain, setFocusChain] = useState<string | null>(null)
-  const scene = ldhModule.scenes[sceneIdx]
-  const canShowSeq = scene.pdbId === '1I10'
-  const chainOptions = Array.isArray(scene.spec.zoomTo?.chain) ? (scene.spec.zoomTo!.chain as string[]) : null
+  const [panelOpen, setPanelOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 900)
 
-  useEffect(() => setFocusChain(null), [sceneIdx])
+  const scene = ldhModule.scenes[sceneIdx]
+  const hotspot = ldhModule.hotspots.find((h) => h.id === hotspotId) ?? null
+  const canShowSeq = !hotspot && scene.pdbId === '1I10'
+  const chainOptions = !hotspot && Array.isArray(scene.spec.zoomTo?.chain) ? (scene.spec.zoomTo!.chain as string[]) : null
+
+  useEffect(() => setFocusChain(null), [sceneIdx, hotspotId])
 
   function handleAtomClick(info: AtomClickInfo) {
+    // Muhim qism qoldig'iga tegilsa — o'sha qismning kartasi ochiladi;
+    // aks holda (tetramer sahnalarida) zanjir yaqinlashtiriladi.
+    const hit = ldhModule.hotspots.find((h) => h.resi?.includes(info.resi))
+    if (hit && !hotspot) {
+      setHotspotId(hit.id)
+      setPanelOpen(true)
+      return
+    }
     if (chainOptions?.includes(info.chain)) setFocusChain(info.chain)
   }
 
-  const displaySpec: SceneSpec = useMemo(
-    () =>
-      chainOptions && focusChain
-        ? {
-            id: `${scene.spec.id}-focus-${focusChain}`,
-            layers: [
-              { select: { chain: chainOptions.filter((c) => c !== focusChain) }, style: 'cartoon', color: '#2a2f3a', opacity: 0.1 },
-              { select: { chain: focusChain }, style: 'cartoon', colorscheme: 'ssPyMol' },
-            ],
-            zoomTo: { chain: focusChain },
-          }
-        : scene.spec,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [scene.spec, focusChain],
-  )
+  function pickHotspot(id: string) {
+    setHotspotId((prev) => (prev === id ? null : id))
+    setPanelOpen(true)
+  }
 
-  const label = focusChain ? { uz: `Zanjir ${focusChain}`, en: `Chain ${focusChain}` } : scene.label
-  const description = focusChain
+  function pickScene(i: number) {
+    setHotspotId(null)
+    setSceneIdx(i)
+  }
+
+  const displaySpec: SceneSpec = useMemo(() => {
+    if (hotspot) return hotspot.spec
+    if (chainOptions && focusChain)
+      return {
+        id: `${scene.spec.id}-focus-${focusChain}`,
+        layers: [
+          { select: { chain: chainOptions.filter((c) => c !== focusChain) }, style: 'cartoon', color: '#2a2f3a', opacity: 0.1 },
+          { select: { chain: focusChain }, style: 'cartoon', colorscheme: 'ssPyMol' },
+          { select: { chain: focusChain, resn: ['NAI', 'OXM'], hetflag: true }, style: 'stick', colorscheme: 'Jmol', radius: 0.16 },
+        ],
+        zoomTo: { chain: focusChain },
+      }
+    return scene.spec
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hotspot?.id, scene.spec, focusChain])
+
+  const focusText: L10nText | null = focusChain
     ? { uz: FOCUS_TEXT.uz(focusChain), en: FOCUS_TEXT.en(focusChain) }
-    : scene.description
+    : null
+  const pdbId = hotspot ? hotspot.pdbId : scene.pdbId
 
   return (
-    <div className="dark fixed inset-0 overflow-hidden bg-background text-foreground">
-      <SceneView pdbId={scene.pdbId} spec={displaySpec} onAtomClick={handleAtomClick} />
+    <div className="studio dark">
+      <SceneView pdbId={pdbId} spec={displaySpec} spin={spin} onAtomClick={handleAtomClick} onBusy={setBusy} />
+      <div className="vignette" />
 
-      {/* Yupqa header: chapda ketma-ketlik, o'rtada sarlavha, o'ngda til — hech
-          qaysi bo'sh joyga "suzib" turmaydi, hammasi bitta qatorda. */}
-      <div className="glass absolute inset-x-2 top-2 flex h-11 items-center justify-between gap-2 rounded-full px-2 sm:inset-x-4 sm:top-4">
-        <div className="w-16 sm:w-20">
-          {canShowSeq && (
-            <button
-              onClick={() => setShowSeq((v) => !v)}
-              className={`rounded-full px-2.5 py-1 text-[11px] font-medium sm:text-xs ${showSeq ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              {lang === 'uz' ? 'AA' : 'Seq'}
-            </button>
-          )}
-        </div>
-
-        <div className="min-w-0 flex-1 text-center">
-          <div className="truncate text-xs font-medium sm:text-sm">{ldhModule.title[lang]}</div>
-          <div className="truncate text-[10px] text-muted-foreground sm:text-xs">
-            PDB {scene.pdbId} {scene.spec.schematic ? `· ${lang === 'uz' ? 'SXEMATIK' : 'SCHEMATIC'}` : ''}
+      <div className="identity">
+        <div className="identity-text">
+          <h1>{ldhModule.title[lang]}</h1>
+          <div className="identity-meta">
+            {ldhModule.subtitle[lang]}
+            <span>·</span>
+            PDB {pdbId}
+            {scene.spec.schematic && !hotspot ? <span>· {lang === 'uz' ? 'SXEMATIK' : 'SCHEMATIC'}</span> : null}
           </div>
         </div>
+      </div>
 
-        <div className="flex w-16 justify-end sm:w-20">
-          <button
-            onClick={() => setLang((l) => (l === 'uz' ? 'en' : 'uz'))}
-            className="rounded-full px-2.5 py-1 text-[11px] font-medium text-muted-foreground hover:text-foreground sm:text-xs"
-          >
-            {lang === 'uz' ? 'EN' : 'UZ'}
+      <div className="top-actions glass">
+        <span className="top-title">{ldhModule.title[lang]}</span>
+        <button
+          className={`pill-icon${showSeq ? ' active' : ''}`}
+          onClick={() => setShowSeq((v) => !v)}
+          disabled={!canShowSeq}
+          title={UI.seq[lang]}
+        >
+          AA
+        </button>
+        <button className={`pill-icon${spin ? ' active' : ''}`} onClick={() => setSpin((v) => !v)} title={UI.spin[lang]}>
+          {spin ? '❙❙' : '▶'}
+        </button>
+        <button className={`pill-icon${panelOpen ? ' active' : ''}`} onClick={() => setPanelOpen((v) => !v)} title={UI.info[lang]}>
+          ⓘ
+        </button>
+        <div className="pill-divider" />
+        <div className="lang-toggle">
+          <button className={lang === 'uz' ? 'active' : ''} onClick={() => setLang('uz')}>
+            UZ
+          </button>
+          <button className={lang === 'en' ? 'active' : ''} onClick={() => setLang('en')}>
+            EN
           </button>
         </div>
       </div>
 
+      {busy && <div className="scene-busy glass">{UI.busy[lang]}</div>}
+
       {chainOptions && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 sm:top-20">
+        <div className="scene-hint">
           {focusChain ? (
-            <button
-              onClick={() => setFocusChain(null)}
-              className="glass rounded-full px-3 py-1.5 text-[11px] font-medium sm:text-xs"
-            >
-              {lang === 'uz' ? '← Barchasi' : '← All chains'}
+            <button className="glass hint-pill" onClick={() => setFocusChain(null)}>
+              {UI.allChains[lang]}
             </button>
           ) : (
-            <div className="glass rounded-full px-3 py-1.5 text-[10px] text-muted-foreground sm:text-xs">
-              {lang === 'uz' ? "Bosib ko'ring: bitta zanjirga teging" : 'Tap a chain to zoom in'}
-            </div>
+            <div className="glass hint-pill muted">{UI.hint[lang]}</div>
           )}
         </div>
       )}
 
-      {canShowSeq && showSeq && (
-        <div className="absolute top-14 right-2 left-2 sm:top-20 sm:right-auto sm:left-4">
-          <SequenceStrip lang={lang} onClose={() => setShowSeq(false)} />
-        </div>
-      )}
+      {canShowSeq && showSeq && <SequenceStrip lang={lang} onClose={() => setShowSeq(false)} />}
 
-      {/* Pastki dok: tab'lar + yig'iladigan tavsif — tuzilmani to'smasligi
-          uchun tavsif matni default yopiq, sarlavhaga bosilsa ochiladi. */}
-      <div className="absolute inset-x-2 bottom-2 flex flex-col items-center gap-1.5 sm:inset-x-4 sm:bottom-4">
-        <div className="glass w-full max-w-md overflow-hidden rounded-2xl">
-          <button
-            onClick={() => setDescOpen((v) => !v)}
-            className="flex w-full items-center justify-between gap-2 px-4 py-2 text-left text-xs font-semibold sm:text-sm"
-          >
-            <span className="truncate">{label[lang]}</span>
-            <span className="shrink-0 text-muted-foreground">{descOpen ? '−' : '+'}</span>
-          </button>
-          {descOpen && (
-            <p className="max-h-24 overflow-y-auto px-4 pb-3 text-[11px] leading-relaxed text-muted-foreground sm:max-h-32 sm:text-xs">
-              {description[lang]}
-            </p>
-          )}
+      <Inspector
+        lang={lang}
+        scene={scene}
+        hotspot={hotspot}
+        focusText={focusText}
+        focusChain={focusChain}
+        moduleSources={ldhModule.sources}
+        onBack={() => setHotspotId(null)}
+        onClose={() => setPanelOpen(false)}
+        open={panelOpen}
+      />
+
+      <div className="bottom-dock">
+        <div className="hotspot-row glass">
+          <span className="hotspot-lead">{UI.parts[lang]}</span>
+          {ldhModule.hotspots.map((h) => (
+            <button
+              key={h.id}
+              className={`hotspot-chip${hotspotId === h.id ? ' active' : ''}`}
+              onClick={() => pickHotspot(h.id)}
+            >
+              {h.short[lang]}
+            </button>
+          ))}
         </div>
 
-        <div className="glass flex max-w-full gap-1 overflow-x-auto rounded-full p-1">
+        <div className="mode-tabs glass">
           {ldhModule.scenes.map((s, i) => (
             <button
               key={s.id}
-              onClick={() => setSceneIdx(i)}
-              className={`shrink-0 rounded-full px-2.5 py-1.5 text-[11px] font-medium whitespace-nowrap transition-colors sm:px-3 sm:text-xs ${
-                i === sceneIdx ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className={`mode-tab${i === sceneIdx && !hotspot ? ' active' : ''}`}
+              onClick={() => pickScene(i)}
             >
               {s.label[lang]}
             </button>
           ))}
         </div>
       </div>
+
+      <div className="studio-credit">MuhammadYusuf Abdullaxo'jayev · with Claude</div>
     </div>
   )
 }

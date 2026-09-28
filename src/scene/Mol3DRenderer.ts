@@ -1,9 +1,18 @@
 // 3Dmol.js adapteri. 3Dmol tiplari faqat shu faylda ko'rinadi — StructureRenderer
 // interfeysi orqasidan tashqariga chiqmaydi (renderer.ts).
-import type { AtomClickInfo, LabelSpec, ResidueSelector, SceneSpec, StructureRenderer, StyleSpec } from './renderer'
+import type {
+  AtomClickInfo,
+  LabelSpec,
+  ResidueSelector,
+  SceneSpec,
+  StructureRenderer,
+  StyleSpec,
+  SurfaceSpec,
+} from './renderer'
 
 // 3Dmol paketida rasmiy TS tiplari yo'q — dynamic import + any bilan izolyatsiya.
 type GLViewer = any
+type Mol3D = any
 
 function toSelector(sel: ResidueSelector): Record<string, unknown> {
   const out: Record<string, unknown> = {}
@@ -23,11 +32,9 @@ function toStyle(spec: StyleSpec): Record<string, unknown> {
     case 'cartoon':
       return { cartoon: props }
     case 'stick':
-      return { stick: props }
+      return { stick: spec.radius !== undefined ? { ...props, radius: spec.radius } : props }
     case 'sphere':
-      return { sphere: props }
-    case 'surface':
-      return { surface: props }
+      return { sphere: spec.radius !== undefined ? { ...props, radius: spec.radius } : props }
     case 'line':
       return { line: props }
   }
@@ -35,12 +42,17 @@ function toStyle(spec: StyleSpec): Record<string, unknown> {
 
 export class Mol3DRenderer implements StructureRenderer {
   private viewer: GLViewer | null = null
+  private mol: Mol3D
   private el: HTMLElement
   private clickCb: ((info: AtomClickInfo) => void) | null = null
+  /** Eng oxirgi applyScene — sekin yuza hisobi tugaguncha sahna almashsa,
+      eskisining natijasini chizmaslik uchun (race himoyasi). */
+  private applyToken = 0
 
-  private constructor(el: HTMLElement, viewer: GLViewer) {
+  private constructor(el: HTMLElement, viewer: GLViewer, mol: Mol3D) {
     this.el = el
     this.viewer = viewer
+    this.mol = mol
   }
 
   static async create(el: HTMLElement): Promise<Mol3DRenderer> {
@@ -49,7 +61,7 @@ export class Mol3DRenderer implements StructureRenderer {
     el.innerHTML = ''
     const $3Dmol = await import('3dmol')
     const viewer = $3Dmol.createViewer(el, { backgroundColor: '#0c1015' })
-    return new Mol3DRenderer(el, viewer)
+    return new Mol3DRenderer(el, viewer, $3Dmol)
   }
 
   async load(_id: string, pdbText: string): Promise<void> {
@@ -68,17 +80,48 @@ export class Mol3DRenderer implements StructureRenderer {
     this.clickCb = cb
   }
 
-  applyScene(spec: SceneSpec): void {
+  async applyScene(spec: SceneSpec): Promise<void> {
     if (!this.viewer) return
+    const token = ++this.applyToken
+    this.viewer.removeAllSurfaces()
     this.viewer.setStyle({}, {})
     this.viewer.removeAllLabels()
+    // 3Dmol'da setStyle tanlangan atomlarning uslubini ALMASHTIRADI, qo'shmaydi
+    // — shuning uchun bir xil tanlovga qaratilgan qatlamlar (masalan stick +
+    // sphere) bitta chaqiruvda birlashtirilishi kerak, aks holda faqat
+    // oxirgisi ko'rinadi (avval shu xato bo'lgan: NADH'ning tayoqchalari
+    // sharlar ostida yo'qolgan edi).
+    const merged = new Map<string, { sel: Record<string, unknown>; style: Record<string, unknown> }>()
     for (const layer of spec.layers) {
-      this.viewer.setStyle(toSelector(layer.select), toStyle(layer))
+      const sel = toSelector(layer.select)
+      const key = JSON.stringify(sel)
+      const entry = merged.get(key) ?? { sel, style: {} }
+      Object.assign(entry.style, toStyle(layer))
+      merged.set(key, entry)
     }
+    for (const { sel, style } of merged.values()) this.viewer.setStyle(sel, style)
     for (const label of spec.labels ?? []) this.addResidueLabel(label)
     if (spec.zoomTo) this.viewer.zoomTo(toSelector(spec.zoomTo))
     else this.viewer.zoomTo()
+    // Lenta darhol ko'rinsin; yuza (sekundlar oladi) keyin ustiga qo'shiladi.
     this.viewer.render()
+
+    for (const surface of spec.surfaces ?? []) {
+      await this.addSurface(surface)
+      if (token !== this.applyToken || !this.viewer) return
+    }
+    if (spec.surfaces?.length) this.viewer.render()
+  }
+
+  private async addSurface(surface: SurfaceSpec): Promise<void> {
+    if (!this.viewer) return
+    const props: Record<string, unknown> = { opacity: surface.opacity ?? 0.7 }
+    if (surface.color) props.color = surface.color
+    if (surface.colorscheme) props.colorscheme = surface.colorscheme
+    const type = this.mol.SurfaceType[surface.kind ?? 'VDW']
+    // addSurface eski versiyalarda callback, yangilarida Promise qaytaradi —
+    // Promise.resolve ikkalasini ham qoplaydi (callback holatida darhol tugaydi).
+    await Promise.resolve(this.viewer.addSurface(type, props, toSelector(surface.select)))
   }
 
   private addResidueLabel(label: LabelSpec): void {
@@ -89,9 +132,9 @@ export class Mol3DRenderer implements StructureRenderer {
     this.viewer.addLabel(label.text, {
       position: { x: anchor.x, y: anchor.y, z: anchor.z },
       backgroundColor: '#0c1015',
-      backgroundOpacity: 0.7,
+      backgroundOpacity: 0.72,
       fontColor: label.color ?? '#ffffff',
-      fontSize: 13,
+      fontSize: 12,
       borderThickness: 0,
     })
   }
@@ -105,6 +148,7 @@ export class Mol3DRenderer implements StructureRenderer {
   }
 
   dispose(): void {
+    this.applyToken++
     this.viewer?.clear()
     this.viewer = null
     this.el.innerHTML = ''

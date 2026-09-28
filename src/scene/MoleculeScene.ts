@@ -19,8 +19,8 @@ export class MoleculeScene {
     await this.renderer?.load(id, pdbText)
   }
 
-  applyScene(spec: SceneSpec) {
-    this.renderer?.applyScene(spec)
+  async applyScene(spec: SceneSpec) {
+    await this.renderer?.applyScene(spec)
   }
 
   onAtomClick(cb: (info: AtomClickInfo) => void) {

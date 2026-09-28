@@ -8,14 +8,18 @@ interface SceneViewProps {
   spec: SceneSpec
   spin?: boolean
   onAtomClick?: (info: AtomClickInfo) => void
+  /** Yuklash yoki yuza hisobi davom etayotganda true (UI spinner uchun). */
+  onBusy?: (busy: boolean) => void
 }
 
-export function SceneView({ pdbId, spec, spin = true, onAtomClick }: SceneViewProps) {
+export function SceneView({ pdbId, spec, spin = true, onAtomClick, onBusy }: SceneViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<MoleculeScene | null>(null)
   const loadedPdbRef = useRef<string | null>(null)
   const onAtomClickRef = useRef(onAtomClick)
   onAtomClickRef.current = onAtomClick
+  const onBusyRef = useRef(onBusy)
+  onBusyRef.current = onBusy
 
   useEffect(() => {
     let cancelled = false
@@ -23,6 +27,7 @@ export function SceneView({ pdbId, spec, spin = true, onAtomClick }: SceneViewPr
 
     async function setup() {
       if (!containerRef.current) return
+      onBusyRef.current?.(true)
       scene = await MoleculeScene.mount(containerRef.current)
       if (cancelled) {
         scene.dispose()
@@ -35,8 +40,9 @@ export function SceneView({ pdbId, spec, spin = true, onAtomClick }: SceneViewPr
       await scene.load(pdbId, pdbText)
       loadedPdbRef.current = pdbId
       scene.onAtomClick((info) => onAtomClickRef.current?.(info))
-      scene.applyScene(spec)
+      await scene.applyScene(spec)
       scene.setSpin(spin)
+      if (!cancelled) onBusyRef.current?.(false)
     }
 
     setup()
@@ -53,7 +59,15 @@ export function SceneView({ pdbId, spec, spin = true, onAtomClick }: SceneViewPr
   }, [pdbId])
 
   useEffect(() => {
-    if (loadedPdbRef.current === pdbId) sceneRef.current?.applyScene(spec)
+    if (loadedPdbRef.current !== pdbId) return
+    let cancelled = false
+    onBusyRef.current?.(true)
+    sceneRef.current?.applyScene(spec).finally(() => {
+      if (!cancelled) onBusyRef.current?.(false)
+    })
+    return () => {
+      cancelled = true
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spec])
 
@@ -67,5 +81,5 @@ export function SceneView({ pdbId, spec, spin = true, onAtomClick }: SceneViewPr
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  return <div ref={containerRef} className="absolute inset-0" />
+  return <div ref={containerRef} className="scene absolute inset-0" />
 }

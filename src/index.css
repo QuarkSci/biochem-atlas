@@ -611,3 +611,90 @@ body { font-feature-settings: 'ss01', 'cv11'; -webkit-font-smoothing: antialiase
   /* The dock spans the full width on a phone; the credit tucks under the top bar instead. */
   .studio-credit { bottom: auto; top: calc(var(--gap-edge) + var(--ctl-h) + 10px); right: var(--gap-edge); font-size: 10px; }
 }
+
+/* ── Biochem Atlas ────────────────────────────────────────────────────── */
+/*
+ * Falcon/neuro dizayn tilining ustiga faqat shu loyihaga xos qismlar
+ * qo'shiladi. Qoidalar: matn o'lchami quti o'lchamini belgilaydi (aksincha
+ * emas — birinchi versiyada shu teskari edi), har bir quti bitta ish qiladi,
+ * va uzun matn hech qachon qirqilmaydi — u SKROLL qilinadigan joyga tushadi.
+ */
+
+.top-title { display: none; font-size: 12.5px; font-weight: 500; padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top-actions .pill-icon { font-size: 11.5px; letter-spacing: 0.04em; }
+
+.scene-busy { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 10px 16px; border-radius: 999px; font-size: 12px; color: var(--fa-muted); z-index: 5; }
+
+.scene-hint { position: absolute; top: calc(var(--gap-edge) + var(--ctl-h) + 14px); left: 50%; transform: translateX(-50%); z-index: 3; }
+.hint-pill { display: inline-flex; align-items: center; height: var(--ctl-h); padding: 0 13px; border-radius: 999px; font-size: 11.5px; }
+.hint-pill.muted { color: var(--fa-muted); }
+
+/* Inspector qo'shimchalari: yopish tugmasi, patologiya bloki, manbalar. */
+.detail-close { position: absolute; top: 14px; right: 14px; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; line-height: 1; color: var(--fa-muted); }
+.detail-close:hover { color: var(--foreground); background: var(--fa-line); }
+.inspector .eyebrow { font-size: 10px; }
+
+.patho { padding: 10px 12px; border-radius: 12px; background: color-mix(in oklab, #ff6b6b 9%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, #ff6b6b 16%, transparent); margin-bottom: 8px; }
+.patho h4 { margin: 0 0 5px; font-size: 12.5px; font-weight: 600; line-height: 1.35; color: color-mix(in oklab, var(--foreground) 92%, #ff9a9a); }
+.patho p { margin: 0; font-size: 12.5px; line-height: 1.6; color: color-mix(in oklab, var(--foreground) 84%, transparent); }
+
+.source-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.source-list li { font-size: 11px; line-height: 1.5; color: var(--fa-muted); padding-left: 11px; position: relative; }
+.source-list li::before { content: ''; position: absolute; left: 0; top: 7px; width: 4px; height: 4px; border-radius: 50%; background: var(--fa-line); }
+
+/* 2D kimyoviy tuzilma ramkasi. */
+.chem-frame { border-radius: 14px; background: color-mix(in oklab, #060a0f 55%, transparent); box-shadow: inset 0 0 0 1px var(--fa-line); padding: 8px 10px 4px; }
+.chem-svg { display: block; width: 100%; height: auto; }
+.chem-note { margin: 2px 0 8px; font-size: 10.5px; line-height: 1.5; color: var(--fa-muted); }
+
+/* Pastki dok: muhim qismlar qatori + sahna tab'lari. */
+.bottom-dock { bottom: 22px; gap: 8px; max-width: calc(100vw - var(--gap-edge) * 2); }
+.hotspot-row { display: flex; align-items: center; gap: 4px; padding: var(--ctl-pad) 10px var(--ctl-pad) 12px; border-radius: 999px; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.hotspot-row::-webkit-scrollbar { display: none; }
+.hotspot-lead { font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--fa-muted); margin-right: 6px; white-space: nowrap; }
+.hotspot-chip { flex-shrink: 0; height: var(--ctl-h); padding: 0 11px; border-radius: 999px; font-size: var(--ctl-font); color: var(--fa-muted); white-space: nowrap; transition: background 0.18s, color 0.18s; }
+.hotspot-chip:hover { color: var(--foreground); }
+.hotspot-chip.active { color: #ffc078; background: color-mix(in oklab, #ffa94d 18%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, #ffa94d 34%, transparent); font-weight: 600; }
+.mode-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.mode-tabs::-webkit-scrollbar { display: none; }
+.mode-tab { flex-shrink: 0; }
+
+/* Inspector dok bilan to'qnashmasin. */
+.inspector { bottom: 128px; }
+
+/* Aminokislotalar ketma-ketligi paneli. */
+.seq-panel { position: absolute; left: var(--gap-edge); top: calc(var(--gap-edge) + var(--ctl-h) + 46px); width: 268px; max-height: min(52dvh, 460px); display: flex; flex-direction: column; border-radius: 20px; padding: 12px 14px 10px; z-index: 4; }
+.seq-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.seq-head strong { display: block; font-size: 12.5px; font-weight: 600; }
+.seq-head span { display: block; font-size: 10.5px; color: var(--fa-muted); margin-top: 2px; }
+.seq-head button { width: 24px; height: 24px; border-radius: 50%; color: var(--fa-muted); font-size: 16px; line-height: 1; flex-shrink: 0; }
+.seq-head button:hover { color: var(--foreground); background: var(--fa-line); }
+.seq-legend { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--fa-muted); margin: 8px 0; }
+.seq-legend i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+.seq-legend i + i { margin-left: 8px; }
+.seq-body { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--fa-line) transparent; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; line-height: 1.65; }
+.seq-row { display: flex; gap: 8px; }
+.seq-num { width: 24px; flex-shrink: 0; text-align: right; color: color-mix(in oklab, var(--foreground) 34%, transparent); user-select: none; }
+.seq-letters { letter-spacing: 0.06em; color: color-mix(in oklab, var(--foreground) 78%, transparent); }
+.seq-hit { border-radius: 2px; color: #0c1015; font-weight: 700; }
+.seq-loop { font-weight: 700; }
+
+@media (max-width: 900px) {
+  .identity { display: none; }
+  .top-title { display: block; flex: 1; min-width: 0; }
+  .top-actions { left: var(--gap-edge); right: var(--gap-edge); justify-content: flex-end; }
+  .seq-panel { left: var(--gap-edge); right: var(--gap-edge); width: auto; }
+  /* Telefonda inspector pastdan chiqadigan varaq — dok ustida turadi. */
+  .inspector { top: auto; left: var(--gap-edge); right: var(--gap-edge); bottom: 112px; width: auto; max-height: 50dvh; transform: translateY(20px); }
+  .inspector.open { transform: none; }
+  .bottom-dock { left: var(--gap-edge); right: var(--gap-edge); bottom: 14px; transform: none; gap: 6px; }
+  .hotspot-row, .mode-tabs { width: 100%; }
+  .studio-credit { display: none; }
+}
+
+.chem-frame { position: relative; }
+.chem-zoom { position: absolute; top: 4px; right: 6px; width: 20px; height: 20px; border-radius: 6px; font-size: 11px; color: var(--fa-muted); z-index: 1; }
+.chem-zoom:hover { color: var(--foreground); background: var(--fa-line); }
+.chem-lightbox { position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; padding: 24px; background: color-mix(in oklab, #05080c 72%, transparent); backdrop-filter: blur(3px); }
+.chem-lightbox-inner { position: relative; width: min(860px, 100%); border-radius: 24px; padding: 26px 30px 12px; }
+.chem-lightbox-inner .chem-note { font-size: 13px; text-align: center; }

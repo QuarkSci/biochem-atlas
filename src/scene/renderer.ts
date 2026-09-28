@@ -2,7 +2,7 @@
 // kelajakdagi adapter (ThreeRenderer, pipeline'dan pishirilgan GLB ribbon)
 // ham shu interfeysga mos keladi — UI/store/i18n bu tafsilotni bilmaydi.
 
-export type StyleKind = 'cartoon' | 'stick' | 'sphere' | 'surface' | 'line'
+export type StyleKind = 'cartoon' | 'stick' | 'sphere' | 'line'
 
 export interface ResidueSelector {
   chain?: string | string[]
@@ -17,7 +17,23 @@ export interface StyleSpec {
   style: StyleKind
   /** Rang: hex ('#4a9') yoki 3Dmol color scheme nomi (masalan 'chain', 'ss'). */
   color?: string
-  /** cartoon uchun ikkilamchi struktura bo'yicha rang. */
+  /** cartoon uchun ikkilamchi struktura, stick/sphere uchun element bo'yicha rang. */
+  colorscheme?: string
+  opacity?: number
+  /** stick uchun tayoqcha qalinligi, sphere uchun radius (Å). */
+  radius?: number
+}
+
+/**
+ * Molekulyar yuza — oqsilni "quruq lenta" emas, haqiqiy hajmli jism
+ * sifatida ko'rsatadigan qatlam. 3Dmol buni `setStyle` bilan emas, alohida
+ * `addSurface` bilan hisoblaydi (sekin — shuning uchun applyScene async).
+ */
+export interface SurfaceSpec {
+  select: ResidueSelector
+  /** VDW eng tez, SAS o'rtacha, MS (Connolly) eng silliq va eng sekin. */
+  kind?: 'VDW' | 'SAS' | 'MS'
+  color?: string
   colorscheme?: string
   opacity?: number
 }
@@ -33,6 +49,8 @@ export interface SceneSpec {
   id: string
   /** Har biri alohida style qatlami — tartib muhim (keyingisi avvalgisi ustiga). */
   layers: StyleSpec[]
+  /** Yuza qatlamlari (ixtiyoriy) — lentaning ustiga shaffof qobiq. */
+  surfaces?: SurfaceSpec[]
   /** 3D fazoda qoldiq nomi bilan yopishtiriladigan yorliqlar (taqdimot uchun). */
   labels?: LabelSpec[]
   /** Kamera shu tanlovga qarab kadrlanadi; bo'sh bo'lsa butun struktura. */
@@ -50,7 +68,8 @@ export interface AtomClickInfo {
 export interface StructureRenderer {
   /** PDB matnini (yoki bir nechta faylni, model sifatida) yuklaydi. */
   load(id: string, pdbText: string): Promise<void>
-  applyScene(spec: SceneSpec): void
+  /** Yuza hisoblanishi sekundlar olishi mumkin — shuning uchun Promise. */
+  applyScene(spec: SceneSpec): Promise<void>
   /** Strukturaning istalgan atomiga bosilganda chaqiriladi (masalan, tetramerda bitta zanjirni tanlash). */
   onAtomClick(cb: (info: AtomClickInfo) => void): void
   spin(on: boolean): void
