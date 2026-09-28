@@ -15,8 +15,8 @@ export class MoleculeScene {
     return scene
   }
 
-  async load(id: string, pdbText: string) {
-    await this.renderer?.load(id, pdbText)
+  async load(id: string, pdbTexts: string[]) {
+    await this.renderer?.load(id, pdbTexts)
   }
 
   async applyScene(spec: SceneSpec) {

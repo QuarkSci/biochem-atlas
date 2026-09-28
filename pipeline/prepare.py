@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """data/raw/*.pdb larni public/structures/ ga tayyorlaydi.
 
-1I10 — o'zgarishsiz nusxalanadi (asimmetrik birlikda A-D, E-H — ikkita
-to'liq tetramer, simmetriya kerak emas).
+1I10 — asimmetrik birlikda A-D va E-H, ya'ni IKKITA to'liq tetramer.
+Ilovaga bittasi yetarli, shuning uchun faqat A-D saqlanadi. Bu uch ishni
+qiladi: fayl ikki barobar kichrayadi, yuklanish tezlashadi, va eng muhimi —
+strukturaning chegara qutisi (bbox) haqiqiy tetramerniki bo'ladi. Aks holda
+"Klinik" sahnasida 1I10 va 1I0Z yonma-yon qo'yilganda ko'rinmaydigan E-H
+zanjirlari joy egallab, ikkinchi struktura juda uzoqqa surilib ketardi.
 
 1I0Z — asimmetrik birlik faqat A,B (yarim tetramer). Biologik assambleya
 fayli (`1I0Z.pdb1`, RCSB'dan) buni 2 ta MODEL sifatida beradi (har birida
@@ -42,8 +46,30 @@ def merge_biological_assembly(src: Path, dst: Path, chain_remap: dict[str, str])
     dst.write_text("".join(lines_out))
 
 
+def keep_chains(src: Path, dst: Path, chains: set[str]) -> None:
+    out: list[str] = []
+    with src.open() as f:
+        for line in f:
+            if line.startswith(("ATOM", "HETATM", "TER", "ANISOU")):
+                if line[21] not in chains:
+                    continue
+            elif line.startswith(("HELIX", "SHEET", "SSBOND", "LINK", "CISPEP", "SITE", "CONECT", "MASTER", "END")):
+                # Ikkilamchi struktura yozuvlari 3Dmol'ning cartoon renderi uchun
+                # kerak (ssPyMol rangi shulardan o'qiladi), lekin CONECT/MASTER
+                # atom raqamlariga bog'liq — ularni tushirib qoldiramiz.
+                if line.startswith(("CONECT", "MASTER", "END")):
+                    continue
+                if line.startswith("HELIX") and line[19] not in chains:
+                    continue
+                if line.startswith("SHEET") and line[21] not in chains:
+                    continue
+            out.append(line)
+    out.append("END\n")
+    dst.write_text("".join(out))
+
+
 def main() -> None:
-    shutil.copy(RAW / "1I10.pdb", OUT / "1I10.pdb")
+    keep_chains(RAW / "1I10.pdb", OUT / "1I10.pdb", {"A", "B", "C", "D"})
     merge_biological_assembly(RAW / "1I0Z_bio1.pdb", OUT / "1I0Z.pdb", {"A": "C", "B": "D"})
     print("tayyor:", list(OUT.iterdir()))
 

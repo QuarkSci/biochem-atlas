@@ -10,6 +10,8 @@ export interface ResidueSelector {
   resi?: number | number[]
   resn?: string | string[]
   hetflag?: boolean
+  /** Yonma-yon qo'yilgan strukturalardan qaysi biri (0 = birinchi pdbId). */
+  model?: number
 }
 
 export interface StyleSpec {
@@ -66,8 +68,12 @@ export interface AtomClickInfo {
 }
 
 export interface StructureRenderer {
-  /** PDB matnini (yoki bir nechta faylni, model sifatida) yuklaydi. */
-  load(id: string, pdbText: string): Promise<void>
+  /**
+   * Bir yoki bir nechta PDB matnini yuklaydi. Bir nechta berilsa ular X o'qi
+   * bo'ylab YONMA-YON qo'yiladi (taqqoslash sahnalari uchun: M4 va H4).
+   * Tanlovda `model: i` bilan murojaat qilinadi.
+   */
+  load(id: string, pdbTexts: string[]): Promise<void>
   /** Yuza hisoblanishi sekundlar olishi mumkin — shuning uchun Promise. */
   applyScene(spec: SceneSpec): Promise<void>
   /** Strukturaning istalgan atomiga bosilganda chaqiriladi (masalan, tetramerda bitta zanjirni tanlash). */

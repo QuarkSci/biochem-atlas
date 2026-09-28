@@ -50,25 +50,38 @@ const SRC_HARPER = "Harper's Illustrated Biochemistry, 32-nashr — LDH izoferme
 const scenes: ModuleScene[] = [
   {
     id: 'quaternary',
-    pdbId: '1I10',
+    pdbIds: ['1I10'],
     label: { uz: "To'rtlamchi struktura", en: 'Quaternary structure' },
     spec: {
       id: 'ldh-quaternary',
-      layers: chainCartoon,
+      layers: [
+        ...chainCartoon,
+        // Sahnaning O'QITADIGAN nuqtasi — "4 ta mustaqil faol markaz" degan
+        // gap faqat o'sha to'rttasi KO'RINSA tushunarli bo'ladi: har zanjirdagi
+        // substrat + kofaktor yorqin shar bo'lib lentadan ajralib turadi.
+        { select: { chain: CHAINS, resn: 'OXM', hetflag: true }, style: 'sphere', color: '#ff2d78', radius: 0.62 },
+        { select: { chain: CHAINS, resn: 'NAI', hetflag: true }, style: 'stick', color: '#ffffff', radius: 0.2 },
+      ],
       // Lentaning ustidagi shaffof yuza — molekula "quruq tasma" emas,
       // hajmli jism bo'lib ko'rinadi (hujayrada u aynan shunday bo'shliqni
       // egallaydi). VDW eng tez tur, tetramer uchun ~1-2 s.
       surfaces: chainSurface,
+      labels: [
+        { select: { chain: 'A', resn: 'OXM', hetflag: true }, text: 'Faol markaz 1', color: '#ff7aa8' },
+        { select: { chain: 'B', resn: 'OXM', hetflag: true }, text: 'Faol markaz 2', color: '#ff7aa8' },
+        { select: { chain: 'C', resn: 'OXM', hetflag: true }, text: 'Faol markaz 3', color: '#ff7aa8' },
+        { select: { chain: 'D', resn: 'OXM', hetflag: true }, text: 'Faol markaz 4', color: '#ff7aa8' },
+      ],
       zoomTo: { chain: CHAINS },
     },
     description: {
-      uz: "LDH — 4 ta subbirlikdan iborat tetramer, ~144 kDa. Har bir subbirlik mustaqil faol markazga ega, ya'ni molekula bir vaqtda 4 ta reaksiyani katalizlay oladi. Ustidagi yarim shaffof qobiq — van der Waals yuzasi: hujayra ichida ferment aynan shu hajmni egallaydi, lenta esa uning ichidagi zanjir yo'li. Bu yerda — inson mushak LDH (M-zanjir, LDHA geni) tetrameri, har bir zanjir alohida rangda. Zanjirga bosib, uni yaqinlashtirish mumkin.",
-      en: 'LDH is a tetramer of four subunits, ~144 kDa. Each subunit has its own independent active site — the molecule can catalyze four reactions at once. The translucent shell is the van der Waals surface: this is the volume the enzyme actually occupies in the cell, while the ribbon is the chain path inside it. Shown here: the human muscle LDH (M subunit, LDHA gene) tetramer, each chain in a different color. Tap a chain to zoom into it.',
+      uz: "LDH — 4 ta subbirlikdan iborat tetramer, ~144 kDa. Pushti sharlar — to'rtta faol markaz (har birida substrat va oq tayoqcha bilan NADH ko'rsatilgan): molekula bir vaqtda 4 ta reaksiyani katalizlay oladi, va ular bir-biriga bog'liq emas — LDH allosterik ferment EMAS (gemoglobindan asosiy farqi shu). Diqqat qiling: markazlar yuzada emas, ikki domen orasidagi chuqur yoriqda joylashgan. Yarim shaffof qobiq — van der Waals yuzasi: hujayra ichida ferment aynan shu hajmni egallaydi. Zanjirga bosib, uni yaqinlashtirish mumkin.",
+      en: 'LDH is a tetramer of four subunits, ~144 kDa. The pink spheres are the four active sites (each with its substrate, and NADH drawn as white sticks): the molecule catalyses four reactions at once, and they are independent of one another — LDH is NOT an allosteric enzyme, which is its main contrast with haemoglobin. Note that the sites are not on the surface but deep in the cleft between the two domains. The translucent shell is the van der Waals surface: the volume the enzyme actually occupies in the cell. Tap a chain to zoom into it.',
     },
   },
   {
     id: 'subunit',
-    pdbId: '1I10',
+    pdbIds: ['1I10'],
     label: { uz: 'Bitta subbirlik', en: 'Single subunit' },
     spec: {
       id: 'ldh-subunit',
@@ -86,7 +99,7 @@ const scenes: ModuleScene[] = [
   },
   {
     id: 'active-site',
-    pdbId: '1I10',
+    pdbIds: ['1I10'],
     label: { uz: 'Faol markaz', en: 'Active site' },
     spec: {
       id: 'ldh-active-site',
@@ -118,7 +131,7 @@ const scenes: ModuleScene[] = [
   },
   {
     id: 'cofactor',
-    pdbId: '1I10',
+    pdbIds: ['1I10'],
     label: { uz: 'Kofaktor (NADH)', en: 'Cofactor (NADH)' },
     spec: {
       id: 'ldh-cofactor',
@@ -142,33 +155,64 @@ const scenes: ModuleScene[] = [
   },
   {
     id: 'isoenzymes',
-    pdbId: '1I10',
+    pdbIds: ['1I10'],
     label: { uz: 'Izofermentlar', en: 'Isoenzymes' },
     spec: {
       id: 'ldh-isoenzymes',
       schematic: true,
-      layers: chainCartoon,
-      surfaces: chainSurface,
+      // Bu sahnada zanjir ranglari "kim qaysi o'rinni egallagani"ni bildiradi,
+      // shuning uchun to'rtta alohida rang EMAS: ikkitasi H (moviy), ikkitasi
+      // M (to'q sariq) — ya'ni ko'rinayotgani LDH3 (H2M2) ning sxemasi.
+      layers: [
+        { select: { chain: ['A', 'B'] }, style: 'cartoon', color: '#2b6cb0' },
+        { select: { chain: ['C', 'D'] }, style: 'cartoon', color: '#d69e2e' },
+        { select: { chain: CHAINS, resn: 'OXM', hetflag: true }, style: 'sphere', color: '#ff2d78', radius: 0.55 },
+      ],
+      surfaces: [
+        { select: { chain: ['A', 'B'] }, kind: 'VDW', color: '#2b6cb0', opacity: 0.3 },
+        { select: { chain: ['C', 'D'] }, kind: 'VDW', color: '#d69e2e', opacity: 0.3 },
+      ],
+      labels: [
+        { select: { chain: 'A', resn: 'OXM', hetflag: true }, text: 'H (LDHB)', color: '#90cdf4' },
+        { select: { chain: 'B', resn: 'OXM', hetflag: true }, text: 'H (LDHB)', color: '#90cdf4' },
+        { select: { chain: 'C', resn: 'OXM', hetflag: true }, text: 'M (LDHA)', color: '#f6d365' },
+        { select: { chain: 'D', resn: 'OXM', hetflag: true }, text: 'M (LDHA)', color: '#f6d365' },
+      ],
       zoomTo: { chain: CHAINS },
     },
     description: {
-      uz: "SXEMATIK: to'rtta o'rin ikki xil subbirlik (H — LDHB, M — LDHA) bilan to'ldirilsa, 5 ta kombinatsiya chiqadi — LDH1 (H4, yurak va eritrotsit), LDH2 (H3M1, retikuloendotelial), LDH3 (H2M2, o'pka), LDH4 (H1M3, buyrak/plasenta), LDH5 (M4, jigar va skelet mushagi). PDB'da faqat gomotetramerlar (H4 va M4) kristallangan — geterotetramerlar uchun haqiqiy struktura yo'q, shuning uchun bu yerda ko'rinayotgan M4 faqat vizual kontekst. Farqning sababi 5-chipda ('Izoferment').",
-      en: 'SCHEMATIC: filling the four positions with two subunit types (H = LDHB, M = LDHA) gives five combinations — LDH1 (H4, heart and red cells), LDH2 (H3M1, reticuloendothelial), LDH3 (H2M2, lung), LDH4 (H1M3, kidney/placenta), LDH5 (M4, liver and skeletal muscle). Only the homotetramers (H4 and M4) have been crystallized — no real structure exists for the heterotetramers, so the M4 shown here is visual context only. Why the isoenzymes differ: see the "Isoenzyme" chip.',
+      uz: "SXEMATIK: ko'rinayotgani — LDH3 (H2M2) ning sxemasi. Ikki moviy o'rin H (LDHB), ikki sariq o'rin M (LDHA). To'rtta o'rin ikki xil subbirlik bilan to'ldirilsa 5 ta kombinatsiya chiqadi: LDH1 (H4 — yurak, eritrotsit), LDH2 (H3M1 — RES), LDH3 (H2M2 — o'pka), LDH4 (H1M3 — buyrak, plasenta), LDH5 (M4 — jigar, skelet mushagi). Nega aralasha oladi: ikkala subbirlik bir xil burmaga ega, shuning uchun istalgan o'rinni egallay oladi. DIQQAT — geterotetramerlar kristallanmagan, bu yerda haqiqiy M4 strukturasi ranglar bilan belgilangan, geometriya sxematik. Beshtasining to'liq jadvali 'Izoferment' chipida.",
+      en: 'SCHEMATIC: what you see is a diagram of LDH3 (H2M2). The two blue positions are H (LDHB), the two gold ones M (LDHA). Filling four positions with two subunit types gives five combinations: LDH1 (H4 — heart, red cells), LDH2 (H3M1 — RES), LDH3 (H2M2 — lung), LDH4 (H1M3 — kidney, placenta), LDH5 (M4 — liver, skeletal muscle). They can mix because both subunits share the same fold and can take any position. NOTE — the heterotetramers have never been crystallized; this is the real M4 structure with the positions colour-coded, so the geometry is schematic. The full table of all five is on the "Isoenzyme" chip.',
     },
   },
   {
     id: 'clinical',
-    pdbId: '1I0Z',
+    // Yagona sahna ikkita HAQIQIY strukturani yonma-yon qo'yadi: chapda M4
+    // (1I10, LDH5), o'ngda H4 (1I0Z, LDH1). "LDH1 va LDH5" sarlavhasi shunda
+    // rostga aylanadi — avval faqat bittasi ko'rinib turardi.
+    pdbIds: ['1I10', '1I0Z'],
     label: { uz: 'Klinik: LDH1 va LDH5', en: 'Clinical: LDH1 vs LDH5' },
     spec: {
       id: 'ldh-clinical',
-      layers: chainCartoon,
-      surfaces: chainSurface,
-      zoomTo: { chain: CHAINS },
+      layers: [
+        { select: { model: 0, chain: CHAINS }, style: 'cartoon', color: '#d69e2e' },
+        { select: { model: 1, chain: CHAINS }, style: 'cartoon', color: '#2b6cb0' },
+        { select: { model: 0, chain: CHAINS, resn: 'OXM', hetflag: true }, style: 'sphere', color: '#ff2d78', radius: 0.55 },
+        { select: { model: 1, chain: CHAINS, resn: 'OXM', hetflag: true }, style: 'sphere', color: '#ff2d78', radius: 0.55 },
+      ],
+      surfaces: [
+        { select: { model: 0, chain: CHAINS }, kind: 'VDW', color: '#d69e2e', opacity: 0.28 },
+        { select: { model: 1, chain: CHAINS }, kind: 'VDW', color: '#2b6cb0', opacity: 0.28 },
+      ],
+      labels: [
+        { select: { model: 0, chain: 'A', resn: 'OXM', hetflag: true }, text: 'LDH5 · M4 · jigar, mushak', color: '#f6d365' },
+        { select: { model: 1, chain: 'A', resn: 'OXM', hetflag: true }, text: 'LDH1 · H4 · yurak, eritrotsit', color: '#90cdf4' },
+      ],
+      zoomTo: {},
     },
     description: {
-      uz: "Bu — LDH1 (H4, yurak/eritrotsit tipidagi tetramer, LDHB geni, PDB 1I0Z). Normada zardobda LDH2 (H3M1) > LDH1. Miokard infarktida yurak hujayralari yorilib, H-boy izofermentlar qon oqimiga chiqadi — natijada LDH1 > LDH2 bo'lib qoladi (\"flip\" belgisi, 12–24 soatda paydo bo'ladi, 2–3 kunda cho'qqi). Hozirgi standart marker troponin bo'lsa-da, bu \"flip\" izoferment tushunchasining klassik namunasi. Umumiy LDH hamon keng qo'llanadi: gemoliz, o'sma lizis sindromi, limfoma va melanomada prognostik ko'rsatkich sifatida.",
-      en: 'This is LDH1 (H4, the heart/erythrocyte-type tetramer, LDHB gene, PDB 1I0Z). Normally LDH2 (H3M1) > LDH1 in serum. In myocardial infarction, ruptured cardiac cells release H-rich isoenzymes into the bloodstream, flipping the ratio so LDH1 > LDH2 (the classic flip sign, appearing at 12–24 h and peaking at 2–3 days). Troponin is the modern standard marker, but this flip remains the textbook example of isoenzyme diagnostics. Total LDH is still widely used: haemolysis, tumour lysis syndrome, and as a prognostic marker in lymphoma and melanoma.',
+      uz: "Ikkala gomotetramer yonma-yon, ikkalasi ham HAQIQIY struktura: chapda sariq — LDH5 (M4, LDHA geni, PDB 1I10, jigar va skelet mushagi), o'ngda moviy — LDH1 (H4, LDHB geni, PDB 1I0Z, yurak va eritrotsit). Umumiy shakli deyarli bir xil (~75% ayniyat, bir xil burma) — farq faol markaz atrofidagi bir necha qoldiqda: H ning piruvatga Km si past va u piruvat ortiqchasida o'zini tormozlaydi (laktat → piruvat, aerob), M esa yuqori piruvatga chidaydi (piruvat → laktat, anaerob). KLINIKA: normada zardobda LDH2 > LDH1; miokard infarktida H-boy izofermentlar qonga chiqib nisbatni teskarilaydi (LDH1 > LDH2 — \"flip\", 12–24 soatda, 2–3 kunda cho'qqi). Bugun troponin ustun, lekin umumiy LDH hamon ishlatiladi: gemoliz, o'sma lizis sindromi, limfoma va melanomada prognoz.",
+      en: 'Both homotetramers side by side, both real structures: on the left in gold, LDH5 (M4, LDHA gene, PDB 1I10, liver and skeletal muscle); on the right in blue, LDH1 (H4, LDHB gene, PDB 1I0Z, heart and red cells). The overall shape is nearly identical (~75% identity, same fold) — the difference lies in a few residues around the active site: H has a low Km for pyruvate and is inhibited by excess pyruvate (lactate → pyruvate, aerobic), while M tolerates high pyruvate (pyruvate → lactate, anaerobic). CLINICALLY: serum normally has LDH2 > LDH1; in myocardial infarction H-rich isoenzymes enter the blood and invert the ratio (LDH1 > LDH2 — the flip, at 12–24 h, peaking at 2–3 days). Troponin has replaced it, but total LDH is still used: haemolysis, tumour lysis syndrome, and prognosis in lymphoma and melanoma.',
     },
   },
 ]
@@ -178,7 +222,7 @@ const hotspots: Hotspot[] = [
     id: 'loop',
     short: { uz: 'Mobil ilmoq', en: 'Mobile loop' },
     label: { uz: "Mobil ilmoq (qopqoq), 96–107", en: 'Mobile loop (the lid), 96–107' },
-    pdbId: '1I10',
+    pdbIds: ['1I10'],
     chem: 'loop',
     resi: LOOP_RESI,
     spec: {
@@ -227,7 +271,7 @@ const hotspots: Hotspot[] = [
     id: 'catalysis',
     short: { uz: 'His192–Asp165', en: 'His192–Asp165' },
     label: { uz: 'Katalitik juftlik: His192 va Asp165', en: 'Catalytic pair: His192 and Asp165' },
-    pdbId: '1I10',
+    pdbIds: ['1I10'],
     chem: 'his-asp',
     resi: [192, 165],
     spec: {
@@ -274,7 +318,7 @@ const hotspots: Hotspot[] = [
     id: 'hydride',
     short: { uz: 'Hidrid uzatish', en: 'Hydride transfer' },
     label: { uz: "Hidrid uzatish: NADH nikotinamid halqasi", en: 'Hydride transfer: the NADH nicotinamide ring' },
-    pdbId: '1I10',
+    pdbIds: ['1I10'],
     chem: 'reaction',
     resi: [],
     spec: {
@@ -327,7 +371,7 @@ const hotspots: Hotspot[] = [
     id: 'clamp',
     short: { uz: 'Substrat ushlagichi', en: 'Substrate clamp' },
     label: { uz: 'Substrat ushlagichi: Arg168, Thr247, Asn137', en: 'Substrate clamp: Arg168, Thr247, Asn137' },
-    pdbId: '1I10',
+    pdbIds: ['1I10'],
     chem: 'arg-clamp',
     resi: [168, 247, 137],
     spec: {
@@ -374,13 +418,27 @@ const hotspots: Hotspot[] = [
     id: 'isoform',
     short: { uz: 'Izoferment', en: 'Isoenzyme' },
     label: { uz: 'Subbirlik chegarasi va izofermentlar', en: 'Subunit interface and isoenzymes' },
-    pdbId: '1I0Z',
+    pdbIds: ['1I10'],
     chem: 'isoenzymes',
+    // Tetramerning o'zi emas, uning BITTA JUFTLIGI (A va B) — chegara yuzasi
+    // faqat shunda ko'rinadi. To'liq tetramer "Izofermentlar" sahnasida.
     spec: {
       id: 'hs-isoform',
-      layers: chainCartoon,
-      surfaces: chainSurface,
-      zoomTo: { chain: CHAINS },
+      layers: [
+        { select: { chain: 'A' }, style: 'cartoon', color: '#2b6cb0' },
+        { select: { chain: 'B' }, style: 'cartoon', color: '#d69e2e' },
+        { select: { chain: ['C', 'D'] }, style: 'cartoon', color: '#39414f', opacity: 0.25 },
+        { select: { chain: ['A', 'B'], resn: 'OXM', hetflag: true }, style: 'sphere', color: '#ff2d78', radius: 0.55 },
+      ],
+      surfaces: [
+        { select: { chain: 'A' }, kind: 'VDW', color: '#2b6cb0', opacity: 0.34 },
+        { select: { chain: 'B' }, kind: 'VDW', color: '#d69e2e', opacity: 0.34 },
+      ],
+      labels: [
+        { select: { chain: 'A', resn: 'OXM', hetflag: true }, text: 'H yoki M — o\'rin bir xil', color: '#90cdf4' },
+        { select: { chain: 'B', resn: 'OXM', hetflag: true }, text: 'qo\'shni subbirlik', color: '#f6d365' },
+      ],
+      zoomTo: { chain: ['A', 'B'] },
     },
     role: {
       uz: "LDHA (M) va LDHB (H) subbirliklari 75% ga o'xshash va bir xil burmaga ega — shuning uchun ular bir tetramerda erkin aralasha oladi va 5 ta izoferment hosil bo'ladi. Farq faol markazning tashqi qatlamidagi bir necha qoldiqda: H-subbirlikning piruvatga Km si past va u piruvat ortiqchasida o'zini tormozlaydi, shuning uchun reaksiyani laktat → piruvat tomonga (aerob yurak uchun yoqilg'i) olib boradi; M-subbirlik yuqori piruvat konsentratsiyasiga chidaydi va piruvat → laktat tomonga ishlaydi (anaerob mushak). Ya'ni bitta reaksiya, lekin to'qimaga qarab qaysi tomonga ketishi tanlanadi.",

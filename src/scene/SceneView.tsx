@@ -3,8 +3,11 @@ import { MoleculeScene } from './MoleculeScene'
 import type { AtomClickInfo, SceneSpec } from './renderer'
 
 interface SceneViewProps {
-  /** public/structures/<pdbId>.pdb dan yuklanadi. */
-  pdbId: string
+  /**
+   * public/structures/<id>.pdb dan yuklanadi. Bir nechta bo'lsa ular
+   * yonma-yon qo'yiladi (spec tanlovlarida `model: 0|1`).
+   */
+  pdbIds: string[]
   spec: SceneSpec
   spin?: boolean
   onAtomClick?: (info: AtomClickInfo) => void
@@ -12,10 +15,13 @@ interface SceneViewProps {
   onBusy?: (busy: boolean) => void
 }
 
-export function SceneView({ pdbId, spec, spin = true, onAtomClick, onBusy }: SceneViewProps) {
+export function SceneView({ pdbIds, spec, spin = true, onAtomClick, onBusy }: SceneViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<MoleculeScene | null>(null)
   const loadedPdbRef = useRef<string | null>(null)
+  // Massiv har renderda yangi havola bo'ladi — effektni faqat MAZMUN
+  // o'zgarganda qayta ishga tushirish uchun kalitga aylantiramiz.
+  const pdbKey = pdbIds.join('+')
   const onAtomClickRef = useRef(onAtomClick)
   onAtomClickRef.current = onAtomClick
   const onBusyRef = useRef(onBusy)
@@ -34,11 +40,12 @@ export function SceneView({ pdbId, spec, spin = true, onAtomClick, onBusy }: Sce
         return
       }
       sceneRef.current = scene
-      const res = await fetch(`${import.meta.env.BASE_URL}structures/${pdbId}.pdb`)
-      const pdbText = await res.text()
+      const texts = await Promise.all(
+        pdbIds.map((id) => fetch(`${import.meta.env.BASE_URL}structures/${id}.pdb`).then((r) => r.text())),
+      )
       if (cancelled) return
-      await scene.load(pdbId, pdbText)
-      loadedPdbRef.current = pdbId
+      await scene.load(pdbKey, texts)
+      loadedPdbRef.current = pdbKey
       scene.onAtomClick((info) => onAtomClickRef.current?.(info))
       await scene.applyScene(spec)
       scene.setSpin(spin)
@@ -56,10 +63,10 @@ export function SceneView({ pdbId, spec, spin = true, onAtomClick, onBusy }: Sce
     // o'zgarishi quyidagi alohida effektlarda yoki ref orqali, qayta
     // yuklamasdan qo'llanadi.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pdbId])
+  }, [pdbKey])
 
   useEffect(() => {
-    if (loadedPdbRef.current !== pdbId) return
+    if (loadedPdbRef.current !== pdbKey) return
     let cancelled = false
     onBusyRef.current?.(true)
     sceneRef.current?.applyScene(spec).finally(() => {

@@ -37,7 +37,7 @@ export default function App() {
 
   const scene = ldhModule.scenes[sceneIdx]
   const hotspot = ldhModule.hotspots.find((h) => h.id === hotspotId) ?? null
-  const canShowSeq = !hotspot && scene.pdbId === '1I10'
+  const canShowSeq = !hotspot && scene.pdbIds.length === 1 && scene.pdbIds[0] === '1I10'
   const chainOptions = !hotspot && Array.isArray(scene.spec.zoomTo?.chain) ? (scene.spec.zoomTo!.chain as string[]) : null
 
   useEffect(() => setFocusChain(null), [sceneIdx, hotspotId])
@@ -83,11 +83,11 @@ export default function App() {
   const focusText: L10nText | null = focusChain
     ? { uz: FOCUS_TEXT.uz(focusChain), en: FOCUS_TEXT.en(focusChain) }
     : null
-  const pdbId = hotspot ? hotspot.pdbId : scene.pdbId
+  const pdbIds = hotspot ? hotspot.pdbIds : scene.pdbIds
 
   return (
     <div className="studio dark">
-      <SceneView pdbId={pdbId} spec={displaySpec} spin={spin} onAtomClick={handleAtomClick} onBusy={setBusy} />
+      <SceneView pdbIds={pdbIds} spec={displaySpec} spin={spin} onAtomClick={handleAtomClick} onBusy={setBusy} />
       <div className="vignette" />
 
       <div className="identity">
@@ -96,7 +96,7 @@ export default function App() {
           <div className="identity-meta">
             {ldhModule.subtitle[lang]}
             <span>·</span>
-            PDB {pdbId}
+            PDB {pdbIds.join(" + ")}
             {scene.spec.schematic && !hotspot ? <span>· {lang === 'uz' ? 'SXEMATIK' : 'SCHEMATIC'}</span> : null}
           </div>
         </div>

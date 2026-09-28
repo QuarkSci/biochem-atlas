@@ -8,8 +8,11 @@ export interface L10nText {
 export interface ModuleScene {
   id: string
   label: L10nText
-  /** Qaysi PDB fayl yuklanadi (public/structures/<pdbId>.pdb). */
-  pdbId: string
+  /**
+   * Qaysi PDB fayl(lar) yuklanadi (public/structures/<id>.pdb). Bir nechta
+   * bo'lsa ular yonma-yon qo'yiladi va tanlovda `model: 0|1` bilan ajratiladi.
+   */
+  pdbIds: string[]
   spec: SceneSpec
   description: L10nText
 }
@@ -33,7 +36,7 @@ export interface Hotspot {
   /** Pastki chipda ko'rinadigan qisqa nom. */
   short: L10nText
   label: L10nText
-  pdbId: string
+  pdbIds: string[]
   spec: SceneSpec
   chem: ChemKey
   /** Bu joyda kimyoviy jihatdan nima sodir bo'ladi. */
