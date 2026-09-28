@@ -67,7 +67,9 @@ const subunitDomains = {
   labels: [
     { select: { chain: 'A', resi: 60 }, text: 'Rossmann burmasi 20–162', color: '#8ab8ff' },
     { select: { chain: 'A', resi: 230 }, text: 'Katalitik domen 163–331', color: '#f6d365' },
-    { select: { chain: 'A', resi: 9 }, text: "N-qo'l → qo'shni subbirlik", color: '#ff9ac4' },
+    // Yorliq qo'lning UCHIDA emas, tanaga yaqin joyida (17-qoldiq): uchi
+    // yuqoriga cho'zilgani uchun yorliq yuqoridagi tugmalar ustiga tushardi.
+    { select: { chain: 'A', resi: 17 }, text: "N-qo'l → qo'shni subbirlik", color: '#ff9ac4' },
     { select: { chain: 'A', resn: 'NAI', hetflag: true }, text: 'NADH', color: '#9ae6b4' },
   ],
   zoomTo: { chain: 'A' },
