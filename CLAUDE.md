@@ -209,7 +209,7 @@ koordinatalaridan hisoblangan masofalar bilan):**
 | # | id | pdbId | Nima ko'rsatadi |
 |---|---|---|---|
 | 1 | `quaternary` | 1I10 | Tetramer + yuza + **4 ta faol markaz** shar bilan. **Bosiladi** → zanjirga yaqinlashadi |
-| 2 | `subunit` | 1I10 | Zanjir A, ikkilamchi struktura rangi (`ssPyMol`) |
+| 2 | `subunit` | 1I10 | Zanjir A + **3 ta qarash usuli** (`variants`): domenlar / ikkilamchi struktura / N→C |
 | 3 | `active-site` | 1I10 | 5 qoldiq + oksamat, rangli stick + **3D yorliqlar** |
 | 4 | `cofactor` | 1I10 | NADH atom darajasida + **3D yorliq** |
 | 5 | `isoenzymes` | 1I10 | `schematic:true` — 2 moviy (H) + 2 sariq (M) = LDH3 sxemasi |
@@ -433,3 +433,24 @@ Asimmetrik birlikda ikkita bir xil tetramer bor edi (A-D, E-H).
 `pipeline/prepare.py` endi faqat A-D ni saqlaydi: fayl 1.8 MB → 0.98 MB,
 va strukturaning bbox'i haqiqiy tetramerniki bo'ladi (yonma-yon qo'yishda
 ko'rinmaydigan E-H joy egallab turardi).
+
+
+### 10.6 `ModuleScene.variants` — bitta sahnaga bir necha qarash usuli
+
+`{id, label, spec, note}` ro'yxati. Bo'lsa, sahna ustida kichik
+almashtirgich chiqadi (`.variant-row`/`.variant-chip`) va Inspector'da
+tanlangan usulning `note` i tavsifdan keyin ko'rsatiladi
+(`.variant-note`). Sukut bo'yicha birinchisi; sahna almashganda 0 ga
+qaytadi.
+
+Hozir faqat "Bitta subbirlik"da: **domenlar** (Rossmann 20–162 moviy,
+katalitik 163–331 sariq, N-terminal qo'l 1–19 pushti + qo'shni zanjir
+xira), **ikkilamchi struktura** (ssPyMol), **N→C** (`color: 'spectrum'`).
+
+Domen chegaralari 1I10 ning O'Z SHEET yozuvlaridan: Rossmann burmasining
+oltita parallel ipi 21–25, 46–50, 75–78, 90–93, 131–134, 157–159;
+N-qo'lning 8–10 ipi D zanjirining 287–303 ipiga ulanadi (tetramerlanish).
+
+Eslatma: 3D yorliqni tuzilmaning UCHIGA yopishtirmang — kamera burilganda
+yorliq ekran chetiga, UI tugmalari ustiga chiqib ketadi. Tanaga yaqinroq
+qoldiqni tanlang.
