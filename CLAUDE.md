@@ -195,9 +195,10 @@ koordinatalaridan hisoblangan masofalar bilan):**
 | PDB # | UniProt # | Rol | Masofa OXM'gacha |
 |---|---|---|---|
 | His192 | His193 | proton qabul qiluvchi (ACT_SITE) | 2.90 Å |
-| Arg105 | Arg106 | substrat karboksilini ushlaydi | 2.89 Å |
+| Arg105 | Arg106 | **mobil ilmoq ustida keladi**, karbonil kislorodini qutblaydi | 2.89 Å |
 | Arg168 | Arg169 | substrat karboksilini ushlaydi | 2.72 Å |
-| Thr247 | Thr248 | substrat bilan bog'lanadi | 2.72 Å |
+| Thr247 | Thr248 | karboksilatga H-bog' | 2.72 Å |
+| Asn137 | Asn138 | C2 kislorodini ushlaydi | — |
 | Asp165 | Asp166 | His192'ni yo'naltiradi (H-bog' 2.64 Å) | 5.71 Å (bilvosita) |
 
 (Eslatma: bir necha eski qoralamada "Asp168" deb yozilgan edi — pozitsiya
@@ -207,12 +208,12 @@ koordinatalaridan hisoblangan masofalar bilan):**
 
 | # | id | pdbId | Nima ko'rsatadi |
 |---|---|---|---|
-| 1 | `quaternary` | 1I10 | Tetramer, zanjir bo'yicha rang. **Bosiladi** → zanjirga yaqinlashadi |
+| 1 | `quaternary` | 1I10 | Tetramer + yuza + **4 ta faol markaz** shar bilan. **Bosiladi** → zanjirga yaqinlashadi |
 | 2 | `subunit` | 1I10 | Zanjir A, ikkilamchi struktura rangi (`ssPyMol`) |
 | 3 | `active-site` | 1I10 | 5 qoldiq + oksamat, rangli stick + **3D yorliqlar** |
 | 4 | `cofactor` | 1I10 | NADH atom darajasida + **3D yorliq** |
-| 5 | `isoenzymes` | 1I10 | `schematic:true` — 5 izoferment haqida matn (haqiqiy struktura yo'q, UI'da sxematik yorliq) |
-| 6 | `clinical` | 1I0Z | H4 tetramer (LDH1), "flip" tushunchasi. **Bosiladi** → zanjirga yaqinlashadi |
+| 5 | `isoenzymes` | 1I10 | `schematic:true` — 2 moviy (H) + 2 sariq (M) = LDH3 sxemasi |
+| 6 | `clinical` | **1I10 + 1I0Z** | Ikki struktura YONMA-YON: M4 (LDH5) va H4 (LDH1) |
 
 ### 2 ta interaktiv "fishka" (foydalanuvchi so'ragan, oddiy statik ko'rinishdan farqi)
 
@@ -377,3 +378,58 @@ Faqat shu loyihaga xos yangi klasslar `index.css` oxirida
 `.seq-*`, `.scene-busy`, `.scene-hint`, `.detail-close`, `.top-title`.
 
 Qo'shimcha tugmalar: aylanishni to'xtatish (▶/❙❙), panelni yopish/ochish (ⓘ).
+
+
+## 10. 2026-09-28 (kech): sahnalar bir-biridan farqlanishi, zoom, bo'sh sahna
+
+Foydalanuvchi e'tirozi: to'rtlamchi struktura, izofermentlar va klinik
+sahnalar BIR XIL ko'rinardi (uchalasi ham `chainCartoon` + `chainSurface`),
+zoom esa juda tez edi.
+
+### 10.1 Qoida: har sahna o'z savoliga javob bersin
+
+Bir xil `layers` ni bir nechta sahnada qayta ishlatish — ko'rinishda
+takrorlanish demak. Endi: quaternary = 4 ta faol markaz sharlari (sahnaning
+gapi ko'rinadi), isoenzymes = 2 moviy + 2 sariq (LDH3 sxemasi), clinical =
+ikkita struktura yonma-yon.
+
+### 10.2 Ko'p-modelli sahna (yonma-yon taqqoslash)
+
+`ModuleScene.pdbIds: string[]`, `ResidueSelector.model?: number`,
+`StructureRenderer.load(id, pdbTexts[])`. Modellar PDB MATNINING O'ZIDA
+ko'chiriladi (3Dmol'da modelni ishonchli ko'chiradigan ommaviy API yo'q):
+X bo'ylab tiziladi, **Y va Z markazlari tenglashtiriladi**. Oxirgisi shart —
+har kristall o'z freymida turadi, tenglashtirilmasa biri kameradan uzoqroqda
+qolib perspektivada kichikroq ko'rinadi va taqqoslash yolg'on chiqadi.
+
+Yorliqlar uchun `viewer.getModel()` EMAS, `viewer.selectedAtoms()` —
+getModel() faqat oxirgi modelni beradi.
+
+### 10.3 Zoom tezligi
+
+3Dmol'ning `_handleMouseScroll` i bitta hodisada kamera masofasining
+~150% igacha siljitadi. Mac trackpad bir imoda o'nlab hodisa yuboradi →
+molekula ichiga kirib ketasiz. Yechim (`installWheelZoom`): `wheel` ni
+konteynerda CAPTURE fazasida ushlab `stopPropagation` qilamiz (shunda
+3Dmol'ning canvas'dagi listeneri umuman chaqirilmaydi) va o'rniga
+`viewer.zoom(exp(-clamp(deltaY) * 0.0018))` — hodisaga ko'pi bilan ~20%.
+
+### 10.4 XATO: sahna butunlay bo'sh qolardi (canvas umuman yo'q)
+
+React StrictMode effectni ikki marta chaqiradi. Birinchi mount'ning
+`Promise`i ikkinchisi canvas yaratgandan KEYIN qaytishi mumkin; o'shanda
+birinchisining `dispose()` idagi `el.innerHTML = ''` ikkinchisining
+canvas'ini ham o'chirib yuborardi. Endi har viewer `createViewer` dan keyin
+O'ZI qo'shgan tugunlarni eslab qoladi va `dispose()` faqat shularni olib
+tashlaydi; `create()` konteynerni tozalamaydi.
+
+**Muhim saboq:** bu xatoni headless screenshot YASHIRDI — dasturiy WebGL
+bilan natija oyna o'lchamiga qarab goh chiqib, goh chiqmasdi. Shubhali
+bo'lsa HAQIQIY brauzerda (browser pane, GPU bilan) tekshiring.
+
+### 10.5 1I10 endi faqat A-D zanjirlari
+
+Asimmetrik birlikda ikkita bir xil tetramer bor edi (A-D, E-H).
+`pipeline/prepare.py` endi faqat A-D ni saqlaydi: fayl 1.8 MB → 0.98 MB,
+va strukturaning bbox'i haqiqiy tetramerniki bo'ladi (yonma-yon qo'yishda
+ko'rinmaydigan E-H joy egallab turardi).
