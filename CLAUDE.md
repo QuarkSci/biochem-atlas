@@ -6,12 +6,19 @@
 > birining 6 mustaqil ishidan bittasi uchun, professional ko'rinsa kifoya,
 > ortiqcha vaqt sarflamang.**
 >
-> Yaratilgan: 2026-09-27. Oxirgi yangilanish: 2026-09-28.
-> Holat: **Faza 0 va Faza 1 tugadi.** LDH moduli — 6 sahna, uz/en kontent,
-> 3D yorliqlar, aminokislotalar ketma-ketligi paneli, tetramerda zanjirga
-> bosib yaqinlashish. Hammasi brauzerda (375×812 va 1440×900) tasdiqlangan,
-> git toza, 6 ta commit. **Keyingi: Faza 2 — GitHub repo + Pages deploy +
-> QR** (pastga qarang, 0-bo'lim 5-band).
+> Yaratilgan: 2026-09-27. Oxirgi yangilanish: 2026-09-28 (kechqurun).
+> Holat: **Faza 0, 1 tugadi; Faza 2 deyarli tugadi.**
+> **JONLI: https://quarksci.github.io/biochem-atlas/** — repo
+> `QuarkSci/biochem-atlas` (ochiq), Pages `build_type=workflow`,
+> `.github/workflows/deploy.yml` master'ga push'da ishlaydi (~40 s).
+> QR kod: `public/qr.png` va `public/qr.svg` (saytda ham:
+> `.../biochem-atlas/qr.png`).
+> LDH moduli — 6 sahna + **5 ta "muhim qism"** (2D kimyoviy tuzilma +
+> patologiya), molekulyar yuza, uz/en kontent, 3D yorliqlar, ketma-ketlik
+> paneli, zanjirga bosib yaqinlashish. Dizayn neuro-atlas vokabulyariga
+> o'tkazildi (9-bo'lim). Brauzerda (390×844 va 1440×900) va JONLI saytda
+> tasdiqlangan. **Qolgan yagona band: internet yo'q holat uchun zaxira
+> video** (PLAN.md 4-bo'lim).
 
 ## 0. YANGI SESSIYADA BIRINCHI QADAMLAR
 
@@ -59,10 +66,15 @@ Maqsad ikki tomonlama:
    uni o'qib interaktiv 3D sahna chiqaradi.
 
 Papka: `/Users/apple/Documents/Loyihalar/biochem-atlas`
-Repo (hali yaratilmagan — Faza 2 ishi): `QuarkSci/biochem-atlas`
-Pages (hali yo'q): `https://quarksci.github.io/biochem-atlas/` —
-`VITE_BASE=/biochem-atlas/` (`.github/workflows/deploy.yml`da tayyor,
-repo nomidan avtomatik oladi).
+Repo: **https://github.com/QuarkSci/biochem-atlas** (ochiq, `master`).
+Pages: **https://quarksci.github.io/biochem-atlas/** — `VITE_BASE` ni
+workflow repo nomidan avtomatik oladi. `gh` sessiyada **QuarkSci**
+akkaunti bilan kirgan.
+
+**MUHIM:** `public/structures/` endi **gitignore'da EMAS** — 1I10.pdb va
+1I0Z.pdb (2.7 MB, RCSB ochiq ma'lumoti) repoda. Aks holda Pages'da
+molekula yuklanmay, bo'sh ekran qolardi va CI ni RCSB'ga bog'lab qo'yish
+kerak bo'lardi (4-bo'limdagi 403 muammosi).
 
 ## 2. Stek va arxitektura qarori — REJADAN FARQ
 
@@ -289,3 +301,79 @@ tasdiqlashdan boshlang — xotiradan yozilgan ID'larga ishonmang.**
 - Mobil (375×812) va desktop (1440×900) ikkalasida tekshiring — bitta
   o'lchamda yaxshi ko'ringan layout ikkinchisida to'qnashishi mumkin
   (2026-09-28 da bo'lgani kabi).
+
+
+## 9. Dizayn va "muhim qismlar" (2026-09-28 kechqurun qayta ishlash)
+
+Foydalanuvchi uchta muammo ko'rsatdi va uchalasi ham tuzatildi.
+
+### 9.1 3D "quruq" ko'rinardi → yuza + element ranglari
+
+- `SceneSpec.surfaces` qo'shildi. 3Dmol'da yuza `setStyle` bilan EMAS,
+  alohida `addSurface(type, style, sel)` bilan hisoblanadi va sekundlar
+  oladi — shuning uchun `StructureRenderer.applyScene` endi
+  `Promise<void>` qaytaradi, `SceneView` esa `onBusy` bilan UI'ga spinner
+  ko'rsatadi. `applyToken` — sahna almashsa eski yuza chizilmasligi uchun.
+- Zanjir ranglari 3Dmol'ning `'chain'` sxemasidan **qo'lda berilgan
+  ranglarga** o'tkazildi (`CHAIN_COLORS` `ldh.ts`da): lenta va yuza aynan
+  bir xil rangda bo'lmasa molekula loyqa/iflos ko'rinadi.
+- Ligandlar (NADH = NAI, oksamat = OXM) `colorscheme: 'Jmol'` bilan —
+  element ranglari, stick + sphere.
+
+### 9.2 XATO: 3Dmol setStyle ALMASHTIRADI, qo'shmaydi
+
+Bir xil selektorga ikki qatlam yozilsa (masalan `stick` va keyin `sphere`)
+faqat OXIRGISI ko'rinadi — NADH tayoqchalari sharlar ostida yo'qolgan edi.
+`Mol3DRenderer.applyScene` endi selektor JSON'i bo'yicha qatlamlarni
+`Map`da birlashtiradi va har selektor uchun `setStyle`ni BIR MARTA
+chaqiradi. Yangi qatlam yozganda buni yodda tuting.
+
+### 9.3 "Muhim qismlar" (Hotspot) — modulning asosiy yangiligi
+
+`types.ts`dagi `Hotspot`: `{short, label, pdbId, spec, chem, role,
+pathology[], resi?, sources?}`. Beshtasi: `loop` (mobil ilmoq 96–107),
+`catalysis` (His192–Asp165), `hydride` (NADH nikotinamid), `clamp`
+(Arg168/Thr247/Asn137), `isoform` (subbirlik chegarasi). Har biri 3D
+ko'rinish + 2D kimyoviy tuzilma + patologiya beradi. 3D'da `resi` dagi
+qoldiqqa bosilsa ham o'sha karta ochiladi (`App.handleAtomClick`).
+
+### 9.4 2D kimyoviy tuzilmalar — `src/ui/ChemStructure.tsx`
+
+Beshta SVG qo'lda yozilgan (kutubxona YO'Q — kerak bo'lgani 5 ta chizma,
+lekin har biri izohlangan bo'lishi kerak; SMILES'dan avtomatik rasm buni
+bermaydi). Chizma bosilsa kattalashadi.
+
+**Tuzoq:** kattalashtirish oynasi `createPortal` bilan `document.body` ga
+chiqariladi. Portal SHART — `.inspector.glass` da `backdrop-filter` bor,
+u `position: fixed` uchun containing block yaratadi va portalsiz oyna
+panel ichida qamalib qoladi (avval shunday bo'lgan).
+
+### 9.5 FAKT TUZATILDI: Arg105 ning roli
+
+Yuqoridagi 5-bo'limdagi jadvalda Arg105 "substrat karboksilini ushlaydi"
+deb yozilgan edi — **noto'g'ri**. Karboksilatni **Arg168 va Thr247**
+ushlaydi (Asn137 esa C2 kislorodini). **Arg105** mobil ilmoq ustida keladi
+va karbonil kislorodini qutblab, o'tish holatini barqarorlashtiradi
+(klassik adabiyotdagi it-baliq LDH sidagi Arg109). `ACTIVE_SITE_INFO` da
+Arg105 endi alohida rangda (`#ffa94d`, ilmoq rangi), Asn137 qo'shildi.
+
+Mobil ilmoqning 96–107 ekani **1I10 ning o'z HELIX/SHEET yozuvlaridan**
+tekshirildi: chain A da 93 va 104 orasida na spiral, na varaq bor.
+
+### 9.6 Dizayn — neuro-atlas vokabulyari
+
+Birinchi versiyada qutilar matnga nisbatan juda katta edi va pastki
+tavsif qutisida matn `max-h` bilan chegara chizig'ida qirqilib qolardi.
+Endi neuro-atlas'ning O'Z CSS klasslari ishlatiladi (ular `index.css` da
+allaqachon bor edi, lekin ishlatilmayotgan edi): `.studio`, `.vignette`,
+`.identity`, `.top-actions` + `.pill-icon` + `.lang-toggle`,
+`.bottom-dock` + `.mode-tabs`, va eng muhimi — o'ngdagi **`.inspector`**
+(`.detail-header` / `.detail-scroll` / `.detail-section`). Matn endi hech
+qachon qirqilmaydi, u skroll qilinadigan joyda.
+
+Faqat shu loyihaga xos yangi klasslar `index.css` oxirida
+"Biochem Atlas" bo'limida: `.hotspot-row`/`.hotspot-chip`, `.chem-frame`/
+`.chem-svg`/`.chem-note`/`.chem-lightbox`, `.patho`, `.source-list`,
+`.seq-*`, `.scene-busy`, `.scene-hint`, `.detail-close`, `.top-title`.
+
+Qo'shimcha tugmalar: aylanishni to'xtatish (▶/❙❙), panelni yopish/ochish (ⓘ).

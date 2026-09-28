@@ -12,7 +12,7 @@ o'qish (TMI taqdimotlariga QR bilan) va Text-to-Code prototipi.
 |---|---|---|---|
 | 0 | Skelet neuro-atlas'dan, `StructureRenderer` interfeysi, `pipeline/fetch.sh`, bitta struktura ekranda | 40 daq | ✅ |
 | 1 | LDH moduli: 6 sahna + uz/en kontent + `sources` + Inspector | 1.5 soat | ✅ |
-| 2 | CLAUDE.md yangilash, GitHub repo + Pages deploy, QR, offline zaxira video | 40 daq | ⬜ |
+| 2 | CLAUDE.md yangilash, GitHub repo + Pages deploy, QR, offline zaxira video | 40 daq | 🟡 |
 | 3 | `ThreeRenderer` adapteri (pipeline → GLB ribbon) | ~1 kun | ⬜ |
 | 4 | 2-modul: gemoglobin allosteriyasi (T→R morfing) | ~2 soat | ⬜ |
 | 5 | 3–4-modullar: Na+/K+-ATFaza, ATF-sintaza | — | ⬜ |
@@ -40,9 +40,11 @@ boshlash — ikkisi yarim qoladi va IELTS'dan ham vaqt yeydi.
 - [x] uz/en ikkalasi to'liq, har yozuvda `sources`
 - [x] `npx tsc --noEmit` va `npm run build` toza
 - [x] Brauzerda screenshot bilan tasdiqlangan (375×812 va 1440×900)
-- [ ] GitHub Pages'da jonli, QR ishlaydi
+- [x] GitHub Pages'da jonli, QR ishlaydi (2026-09-28)
 - [ ] Internet yo'q holat uchun zaxira video tayyor
 
 Bonus (rejada yo'q edi, foydalanuvchi so'ragan): 3D suzuvchi yorliqlar,
 aminokislotalar ketma-ketligi paneli, tetramerda zanjirga bosib
-yaqinlashish — batafsil `CLAUDE.md` 5-bo'lim.
+yaqinlashish, **5 ta "muhim qism" — 2D kimyoviy tuzilma + patologiya**,
+**molekulyar yuza (surface)**, **dizayn neuro-atlas vokabulyariga
+o'tkazildi** — batafsil `CLAUDE.md` 5 va 9-bo'limlar.
