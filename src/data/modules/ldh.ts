@@ -41,6 +41,38 @@ const CHAIN_COLORS: Record<string, string> = { A: '#5b8ff9', B: '#4ecb8f', C: '#
 const chainCartoon = CHAINS.map((c) => ({ select: { chain: c }, style: 'cartoon' as const, color: CHAIN_COLORS[c] }))
 const chainSurface = CHAINS.map((c) => ({ select: { chain: c }, kind: 'VDW' as const, color: CHAIN_COLORS[c], opacity: 0.32 }))
 
+const range = (a: number, b: number) => Array.from({ length: b - a + 1 }, (_, i) => a + i)
+
+// Domen chegaralari 1I10 ning O'Z SHEET yozuvlaridan olindi: Rossmann
+// burmasining oltita parallel ipi 21–25, 46–50, 75–78, 90–93, 131–134,
+// 157–159 oralig'ida — ya'ni kofaktor domeni ~20 dan ~162 gacha, undan
+// keyingisi katalitik domen. N-terminal qo'l (1–19) esa 8–10 ipi bilan
+// QO'SHNI zanjirning (D) varag'iga qo'shiladi — tetramerlanish qadog'i.
+const ARM = range(1, 19)
+const ROSSMANN = range(20, 162)
+const CATALYTIC = range(163, 331)
+
+const subunitDomains = {
+  id: 'ldh-subunit-domains',
+  layers: [
+    { select: { chain: 'A', resi: ROSSMANN }, style: 'cartoon' as const, color: '#3f87f5' },
+    { select: { chain: 'A', resi: CATALYTIC }, style: 'cartoon' as const, color: '#f2b544' },
+    { select: { chain: 'A', resi: ARM }, style: 'cartoon' as const, color: '#ff4f9a' },
+    // Qo'shni subbirlik xira ko'rinadi — N-terminal qo'l ANIQ QAYERGA
+    // borayotgani faqat shunda ko'rinadi.
+    { select: { chain: 'D' }, style: 'cartoon' as const, color: '#39414f', opacity: 0.3 },
+    { select: { chain: 'A', resn: ['NAI', 'OXM'], hetflag: true }, style: 'stick' as const, colorscheme: 'Jmol', radius: 0.18 },
+  ],
+  surfaces: [{ select: { chain: 'A' }, kind: 'VDW' as const, color: '#6d7a8f', opacity: 0.16 }],
+  labels: [
+    { select: { chain: 'A', resi: 60 }, text: 'Rossmann burmasi 20–162', color: '#8ab8ff' },
+    { select: { chain: 'A', resi: 230 }, text: 'Katalitik domen 163–331', color: '#f6d365' },
+    { select: { chain: 'A', resi: 9 }, text: "N-qo'l → qo'shni subbirlik", color: '#ff9ac4' },
+    { select: { chain: 'A', resn: 'NAI', hetflag: true }, text: 'NADH', color: '#9ae6b4' },
+  ],
+  zoomTo: { chain: 'A' },
+}
+
 const SRC_READ =
   'Read J.A. et al. (2001) "Structural basis for altered activity of M- and H-isozyme forms of human lactate dehydrogenase." Proteins 43:175-185 — PDB 1I10, 1I0Z'
 const SRC_UNIPROT = 'UniProt P00338 (LDHA) va P07195 (LDHB) — faol markaz va bog\'lanish joylari jadvali'
@@ -83,18 +115,54 @@ const scenes: ModuleScene[] = [
     id: 'subunit',
     pdbIds: ['1I10'],
     label: { uz: 'Bitta subbirlik', en: 'Single subunit' },
-    spec: {
-      id: 'ldh-subunit',
-      layers: [
-        { select: { chain: 'A' }, style: 'cartoon', colorscheme: 'ssPyMol' },
-        { select: { chain: 'A', resn: ['NAI', 'OXM'], hetflag: true }, style: 'stick', colorscheme: 'Jmol', radius: 0.16 },
-      ],
-      surfaces: [{ select: { chain: 'A' }, kind: 'VDW', color: '#7f8ca3', opacity: 0.2 }],
-      zoomTo: { chain: 'A' },
-    },
+    spec: subunitDomains,
+    variants: [
+      {
+        id: 'domains',
+        label: { uz: 'Domenlar', en: 'Domains' },
+        spec: subunitDomains,
+        note: {
+          uz: "Moviy — Rossmann burmasi (20–162): oltita parallel beta-varaq va ular orasidagi alfa-spirallar, NAD(H) uchun universal 'rozetka'. Sariq — katalitik domen (163–331): His192, Arg168, Thr247 shu yerda. Pushti — N-terminal qo'l (1–19): u o'z subbirligiga tegishli emasdek cho'zilib, QO'SHNI subbirlikning beta-varag'iga qo'shilib ketadi — tetramerni ushlab turadigan qadoq shu. Ikki domen orasidagi yoriq — faol markaz.",
+          en: "Blue is the Rossmann fold (20–162): six parallel beta strands with helices between them, the universal socket for NAD(H). Gold is the catalytic domain (163–331): His192, Arg168 and Thr247 live here. Pink is the N-terminal arm (1–19), which reaches away from its own subunit and joins the beta sheet of the NEIGHBOURING one — that is the staple holding the tetramer together. The cleft between the two domains is the active site.",
+        },
+      },
+      {
+        id: 'ss',
+        label: { uz: 'Ikkilamchi struktura', en: 'Secondary structure' },
+        spec: {
+          id: 'ldh-subunit-ss',
+          layers: [
+            { select: { chain: 'A' }, style: 'cartoon', colorscheme: 'ssPyMol' },
+            { select: { chain: 'A', resn: ['NAI', 'OXM'], hetflag: true }, style: 'stick', colorscheme: 'Jmol', radius: 0.16 },
+          ],
+          surfaces: [{ select: { chain: 'A' }, kind: 'VDW', color: '#7f8ca3', opacity: 0.18 }],
+          zoomTo: { chain: 'A' },
+        },
+        note: {
+          uz: 'Qizil — alfa-spiral, sariq — beta-varaq, oq — ilmoq. Rossmann burmasining "beta-alfa-beta" navbatlashuvi aynan shu ko\'rinishda yaqqol ko\'rinadi: markazda parallel varaqlar taxtasi, ikki yonida spirallar.',
+          en: 'Red helices, gold sheets, white loops. This is the view where the beta-alpha-beta alternation of the Rossmann fold is obvious: a plank of parallel strands in the middle with helices packed on both faces.',
+        },
+      },
+      {
+        id: 'nc',
+        label: { uz: "N→C yo'nalishi", en: 'N→C direction' },
+        spec: {
+          id: 'ldh-subunit-nc',
+          layers: [
+            { select: { chain: 'A' }, style: 'cartoon', color: 'spectrum' },
+            { select: { chain: 'A', resn: ['NAI', 'OXM'], hetflag: true }, style: 'stick', colorscheme: 'Jmol', radius: 0.16 },
+          ],
+          zoomTo: { chain: 'A' },
+        },
+        note: {
+          uz: "Rang ketma-ketlik bo'ylab o'zgaradi: moviy — N-uchi (1-qoldiq), qizil — C-uchi (331). Ribosomadan chiqqan zanjir aynan shu tartibda o'ralgan. Diqqat qiling, moviydan qizilga o'tish bir tomonga qarab ketadi: birinchi yarmi (moviy-yashil) kofaktor domenini, ikkinchi yarmi (sariq-qizil) katalitik domenni yasaydi.",
+          en: 'Colour runs along the sequence: blue at the N terminus (residue 1), red at the C terminus (331). This is the order in which the chain came off the ribosome and folded. Note that the blue-to-red march is one-directional: the first half (blue-green) builds the cofactor domain, the second half (gold-red) the catalytic domain.',
+        },
+      },
+    ],
     description: {
-      uz: "Bitta zanjir ikkita domenga bo'linadi: N-terminal Rossmann burmasi (NAD(H) kofaktorni bog'laydi — beta-varaq va alfa-spiral navbatlashuvidan iborat klassik motif, ko'plab degidrogenazalarda uchraydi) va C-terminal domen (substrat bog'lash va tetramerlanish uchun). Rang ikkilamchi strukturani ko'rsatadi: qizil — alfa-spiral, sariq — beta-varaq, oq — ilmoq. Ikki domen orasidagi yoriqda kofaktor va substrat (element ranglarida) o'tiradi — faol markaz aynan shu yoriqning tubida.",
-      en: 'A single chain has two domains: the N-terminal Rossmann fold (binds the NAD(H) cofactor — the classic alternating beta-sheet/alpha-helix motif shared by many dehydrogenases) and the C-terminal domain (substrate binding and tetramerization). Color shows secondary structure: red helices, yellow sheets, white loops. The cofactor and substrate (element colors) sit in the cleft between the two domains — the active site is at the bottom of that cleft.',
+      uz: "Bitta zanjir — 331 aminokislota, ikkita domen. Uchta qarash usulini almashtirib ko'ring (yuqoridagi tugmalar): domenlar, ikkilamchi struktura, N→C yo'nalishi. Element ranglaridagi tayoqchalar — NADH va substrat: ular ikki domen orasidagi yoriqda, faol markazda o'tiradi.",
+      en: 'A single chain: 331 amino acids, two domains. Switch between the three ways of looking at it with the buttons above: domains, secondary structure, N→C direction. The element-coloured sticks are NADH and the substrate, sitting in the cleft between the domains — the active site.',
     },
   },
   {

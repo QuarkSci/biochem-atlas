@@ -25,6 +25,8 @@ interface InspectorProps {
   /** Zanjirga bosilganda — sahna tavsifi o'rniga ko'rsatiladigan matn. */
   focusText: L10nText | null
   focusChain: string | null
+  /** Tanlangan "qarash usuli" izohi — sahna tavsifidan keyin qo'shiladi. */
+  variantNote?: L10nText | null
   moduleSources: string[]
   onBack: () => void
   onClose: () => void
@@ -37,6 +39,7 @@ export function Inspector({
   hotspot,
   focusText,
   focusChain,
+  variantNote,
   moduleSources,
   onBack,
   onClose,
@@ -71,6 +74,7 @@ export function Inspector({
         <section className="detail-section" style={{ marginTop: hotspot ? 18 : 0 }}>
           {hotspot && <h3>{UI.role[lang]}</h3>}
           <p className="structure-description">{body}</p>
+          {variantNote && <p className="variant-note">{variantNote[lang]}</p>}
         </section>
 
         {!hotspot && scene.spec.schematic && <div className="schematic-note">{UI.schematic[lang]}</div>}

@@ -34,13 +34,17 @@ export default function App() {
   const [hotspotId, setHotspotId] = useState<string | null>(null)
   const [focusChain, setFocusChain] = useState<string | null>(null)
   const [panelOpen, setPanelOpen] = useState(() => typeof window === 'undefined' || window.innerWidth >= 900)
+  const [variantIdx, setVariantIdx] = useState(0)
 
   const scene = ldhModule.scenes[sceneIdx]
   const hotspot = ldhModule.hotspots.find((h) => h.id === hotspotId) ?? null
+  const variants = !hotspot ? scene.variants : undefined
+  const variant = variants?.[variantIdx] ?? null
   const canShowSeq = !hotspot && scene.pdbIds.length === 1 && scene.pdbIds[0] === '1I10'
   const chainOptions = !hotspot && Array.isArray(scene.spec.zoomTo?.chain) ? (scene.spec.zoomTo!.chain as string[]) : null
 
   useEffect(() => setFocusChain(null), [sceneIdx, hotspotId])
+  useEffect(() => setVariantIdx(0), [sceneIdx])
 
   function handleAtomClick(info: AtomClickInfo) {
     // Muhim qism qoldig'iga tegilsa — o'sha qismning kartasi ochiladi;
@@ -76,9 +80,9 @@ export default function App() {
         ],
         zoomTo: { chain: focusChain },
       }
-    return scene.spec
+    return variant?.spec ?? scene.spec
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hotspot?.id, scene.spec, focusChain])
+  }, [hotspot?.id, scene.spec, variant?.spec, focusChain])
 
   const focusText: L10nText | null = focusChain
     ? { uz: FOCUS_TEXT.uz(focusChain), en: FOCUS_TEXT.en(focusChain) }
@@ -131,9 +135,21 @@ export default function App() {
 
       {busy && <div className="scene-busy glass">{UI.busy[lang]}</div>}
 
-      {chainOptions && (
+      {(chainOptions || variants) && (
         <div className="scene-hint">
-          {focusChain ? (
+          {variants ? (
+            <div className="glass variant-row">
+              {variants.map((v, i) => (
+                <button
+                  key={v.id}
+                  className={`variant-chip${i === variantIdx ? ' active' : ''}`}
+                  onClick={() => setVariantIdx(i)}
+                >
+                  {v.label[lang]}
+                </button>
+              ))}
+            </div>
+          ) : focusChain ? (
             <button className="glass hint-pill" onClick={() => setFocusChain(null)}>
               {UI.allChains[lang]}
             </button>
@@ -151,6 +167,7 @@ export default function App() {
         hotspot={hotspot}
         focusText={focusText}
         focusChain={focusChain}
+        variantNote={!focusChain && variant ? variant.note : null}
         moduleSources={ldhModule.sources}
         onBack={() => setHotspotId(null)}
         onClose={() => setPanelOpen(false)}

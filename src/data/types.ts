@@ -15,6 +15,20 @@ export interface ModuleScene {
   pdbIds: string[]
   spec: SceneSpec
   description: L10nText
+  /**
+   * Bitta sahnaga bir necha "qarash usuli" (masalan domenlar / ikkilamchi
+   * struktura / N→C yo'nalishi). Bo'lsa, sahna tablari ustida kichik
+   * almashtirgich chiqadi va birinchisi sukut bo'yicha tanlanadi.
+   */
+  variants?: SceneVariant[]
+}
+
+export interface SceneVariant {
+  id: string
+  label: L10nText
+  spec: SceneSpec
+  /** Inspector'da tavsifdan keyin qo'shiladigan bir-ikki gap. */
+  note: L10nText
 }
 
 /** 2D kimyoviy tuzilma chizmasining kaliti (`src/ui/ChemStructure.tsx`). */
